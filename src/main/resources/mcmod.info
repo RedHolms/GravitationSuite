@@ -1,0 +1,16 @@
+[
+  {
+    "modid": "gravisuite",
+    "name": "Gravitation Suite",
+    "description": "Gravitation Suite gives you ability to fly. This is addon for IndustrialCraft 2",
+    "version": "3.1.1",
+    "mcversion": "1.12.2",
+    "url": "http://forum.industrial-craft.net/index.php?page=Thread&threadID=13598",
+    "updateUrl": "",
+    "authorList": ["SeNtiMeL", "Chocohead"],
+    "credits": "Created by Chocohead, based on SeNtiMeL's versions. Thanks to Arhan and Krezzard for past graphics and crafting ideas.",
+    "logoFile": "",
+    "screenshots": [],
+    "dependencies": ["ic2"]
+  }
+]

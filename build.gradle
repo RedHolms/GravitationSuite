@@ -1,0 +1,43 @@
+buildscript {
+  repositories {
+    maven { url = 'https://files.minecraftforge.net/maven' }
+    jcenter()
+    mavenCentral()
+  }
+  dependencies {
+    classpath 'net.minecraftforge.gradle:ForgeGradle:3.+'
+  }
+}
+
+apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'eclipse'
+apply plugin: 'maven-publish'
+
+version = '3.1.1'
+group = 'com.chocohead.gravisuite'
+archivesBaseName = 'gravisuite'
+
+sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
+
+minecraft {
+  mappings channel: 'snapshot', version: '20171003-1.12'
+}
+
+dependencies {
+  minecraft 'net.minecraftforge:forge:1.12.2-14.23.5.2860'
+  compile files('lib/industrialcraft-2-2.8.170-ex112-dev.jar')
+  compile files('lib/jei_1.12.2-4.16.1.1003.jar')
+}
+
+//publishing {
+//  publications {
+//    mavenJava(MavenPublication) {
+//      artifact jar
+//    }
+//  }
+//  repositories {
+//    maven {
+//      url "file:///${project.projectDir}/mcmodsrepo"
+//    }
+//  }
+//}

@@ -1,0 +1,83 @@
+gravisuite.ultimateLappack=Ультимейтный мультиранец
+gravisuite.advancedLappack=Улучшенный мультиранец
+
+gravisuite.advancedJetpack=Улучшенный реактивный ранец
+gravisuite.advancedNanoChestplate=Улучшенный нановолоконный нагрудник
+gravisuite.graviChestplate=Гравитационный нагрудник
+
+gravisuite.advancedDrill=Улучшенный алмазный бур
+gravisuite.advancedDrill.mode=Режим: %s
+gravisuite.advancedDrill.normal=Нормальный
+gravisuite.advancedDrill.lowPower=Низкое питание
+gravisuite.advancedDrill.fine=Точный
+gravisuite.advancedDrill.bigHoles=Большие дырки
+gravisuite.advancedDrill.ranOut=Недостаточно энергии для завершения этой операции!
+
+gravisuite.advancedChainsaw=Улучшенная цепная пила
+gravisuite.advancedChainsaw.shear=Режим стрижки %s
+
+gravisuite.graviTool=Гравитул
+gravisuite.graviTool.set=%s (%s)
+gravisuite.graviTool.changeTool=Режим: %s
+gravisuite.graviTool.hoe=Мотыга
+gravisuite.graviTool.treetap=Краник
+gravisuite.graviTool.wrench=Гаечный ключ
+gravisuite.graviTool.screwdriver=Отвертка
+gravisuite.graviTool.noEnergy=Недостаточно энергии для завершения этой операции!
+
+gravisuite.vajra=Ваджра
+gravisuite.vajra.silkTouch=Режим шелкого касания %s
+gravisuite.vajra.silkTouchDisabled=Не возможно изменить режим работы - точный режим выключен в файле конфигурации!
+
+gravisuite.crafting.superconductor_cover=Изоляция сверхпроводника
+gravisuite.crafting.superconductor=Сверхпроводник
+gravisuite.crafting.cooling_core=Охлаждающий элемент
+gravisuite.crafting.gravitation_engine=Гравитационный двигатель
+gravisuite.crafting.magnetron=Магнетрон
+gravisuite.crafting.vajra_core=Ядро ваджры
+gravisuite.crafting.engine_booster=Ускоритель двигателя
+
+
+gravisuite.message.on=включен
+gravisuite.message.off=выключен
+gravisuite.message.energy=Заряд: %s
+gravisuite.message.hover=(Режим парения)
+gravisuite.message.jetpackEngine=Двигатель реактивного ранца включен %s
+gravisuite.message.jetpackSwitch=Двигатель реактивного ранца %s
+
+
+message.text.energyLevel=Заряд
+message.text.enabled=включен
+message.text.disabled=выключен
+
+message.text.powerSupply=Источник питания
+message.graviChestPlate.gravitationEngine=Гравитационный двигатель
+message.graviChestPlate.levitationMode=Левитация
+message.graviChestPlate.levitationMode.short=Л
+message.graviChestPlate.lowEnergy=Недостаточно энергии для запуска гравитационного двигателя!
+message.graviChestPlate.shutdown=Внимание! У вас закончилась энергия! Гравитационный двигатель отключен
+message.graviChestPlate.noEnergyToBoost=Недостаточно энергии для ускорения!
+message.hud.displayHud=Отображение статуса
+message.hud.location=Расположение статуса
+message.hud.location.topLeft=Вверху слева
+message.hud.location.topRight=Вверху справа
+message.hud.location.bottomLeft=Внизу слева
+message.hud.location.bottomRight=Внизу справа
+
+block.relocatorPortal.name=Портал релокатора
+item.relocator.name=Релокатор
+item.relocator.gui.addPoint=ДОБАВИТЬ НОВУЮ ТОЧКУ
+
+message.relocator.mode.personal=Личный
+message.relocator.mode.translocator=Транслокатор
+message.relocator.mode.portal=Портал
+message.relocator.defPoint=По уполчанию
+message.relocator.text.poindAdded=добавлена в память релокатора!
+message.relocator.text.pointExists=уже существует в памяти релокатора!
+message.relocator.text.memoryFull=Не возможно добавить точку. Память заполнена.
+message.relocator.text.cantSetPointPoint=Не возможно задать точку по умолчанию. Точка не найдена.
+message.relocator.text.noDefaultPoint=Точка по умоланию не задана
+message.relocator.text.modeTranslocatorDisabled=Режим транслокатора отключен на этом сервере!
+message.relocator.text.modePortalDisabled=Режим портала отключен на этом сервере!
+message.relocator.text.messageToTarget=попытался телепортировать вас!
+message.relocator.text.defaultPointSet=Точка по умолчанию задана на
