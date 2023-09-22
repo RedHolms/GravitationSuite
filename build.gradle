@@ -15,7 +15,7 @@ apply plugin: 'maven-publish'
 
 version = '3.1.1'
 group = 'com.chocohead.gravisuite'
-archivesBaseName = 'gravisuite'
+archivesBaseName = 'Gravitation+Suite'
 
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
 
