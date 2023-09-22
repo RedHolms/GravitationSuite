@@ -12,7 +12,7 @@ import ic2.core.IC2;
 import ic2.core.util.Keyboard;
 import ic2.core.util.ReflectionUtil;
 import java.lang.reflect.Field;
-import java.util.Locale;
+import java.lang.reflect.Modifier;
 import java.util.Set;
 import net.minecraft.client.settings.GameSettings;
 import net.minecraft.client.settings.KeyBinding;
@@ -24,67 +24,75 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import org.apache.commons.lang3.ArrayUtils;
 
 public final class GraviKeys extends Keyboard {
-  private static final Keyboard.IKeyWatcher FLY_KEY;
+  private final Keyboard.IKeyWatcher m_flyKey;
 
-  static void addFlyKey() {
-    IC2.keyboard.addKeyWatcher(FLY_KEY);
+  GraviKeys() {
+    m_flyKey = new KeyWatcher(GraviKeys.Key.fly);
   }
 
-  public static boolean isFlyKeyDown(EntityPlayer player) {
-    return IC2.keyboard.isKeyDown(player, FLY_KEY);
+  public void addKeys() {
+    IC2.keyboard.addKeyWatcher(m_flyKey);
   }
 
-  static {
-    FLY_KEY = new KeyWatcher(GraviKeys.GraviKey.fly);
+  public boolean isFlyKeyDown(EntityPlayer player) {
+    return IC2.keyboard.isKeyDown(player, m_flyKey);
   }
 
   private static class KeyWatcher implements Keyboard.IKeyWatcher {
-    private final GraviKey key;
+    private final GraviKeys.Key m_key;
 
-    public KeyWatcher(GraviKey key) {
-      this.key = key;
+    KeyWatcher(GraviKeys.Key key) {
+      this.m_key = key;
     }
 
+    @Override
     public Keyboard.Key getRepresentation() {
-      return this.key.key;
+      return this.m_key.m_key;
     }
 
     @SideOnly(Side.CLIENT)
+    @Override
     public void checkForKey(Set<Keyboard.Key> pressedKeys) {
-      if (GameSettings.isKeyDown(this.key.binding)) {
+      if (GameSettings.isKeyDown(this.m_key.binding)) {
         pressedKeys.add(this.getRepresentation());
       }
-
     }
   }
 
-  private enum GraviKey {
+  private enum Key {
     fly(33, "Gravi Fly Key");
 
-    private final Keyboard.Key key = this.addKey(this.name());
     @SideOnly(Side.CLIENT)
     private KeyBinding binding;
+    private final Keyboard.Key m_key;
 
+    Key(int keyID, String description) {
+      m_key = addKey(name());
+
+      if (IC2.platform.isRendering()) {
+        binding = new KeyBinding(description, keyID, "Gravisuite");
+        ClientRegistry.registerKeyBinding(binding);
+      }
+    }
+
+    // Returns Keyboard.Key.keys field object
+    // Also makes it non-final
     private static Field getKeysField() {
       try {
         Field field = ReflectionUtil.getField(Keyboard.Key.class, "keys");
-        ReflectionUtil.getField(Field.class, new String[]{"modifiers"}).setInt(field, field.getModifiers() & -17);
+
+        // Make field non-final
+        ReflectionUtil.getField(Field.class, "modifiers").setInt(field, field.getModifiers() & ~Modifier.FINAL);
+
         return field;
       } catch (Exception exception) {
         throw new RuntimeException("Error reflecting keys field!", exception);
       }
     }
 
-    GraviKey(int keyID, String description) {
-      if (IC2.platform.isRendering()) {
-        ClientRegistry.registerKeyBinding(this.binding = new KeyBinding(description, keyID, "gravisuite".substring(0, 1).toUpperCase(Locale.ENGLISH) + "gravisuite".substring(1)));
-      }
-
-    }
-
     private Keyboard.Key addKey(String name) {
       Keyboard.Key key = EnumHelper.addEnum(Keyboard.Key.class, name, new Class[0]);
-      ReflectionUtil.setValue(null, getKeysField(), ArrayUtils.add(Key.keys, key));
+      ReflectionUtil.setValue(null, getKeysField(), ArrayUtils.add(Keyboard.Key.keys, key));
       return key;
     }
   }

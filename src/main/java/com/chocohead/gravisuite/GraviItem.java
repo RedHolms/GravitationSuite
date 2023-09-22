@@ -26,7 +26,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-public enum GS_Items {
+public enum GraviItem {
   ADVANCED_LAPPACK,
   ADVANCED_JETPACK,
   ADVANCED_NANO_CHESTPLATE,
@@ -40,9 +40,6 @@ public enum GS_Items {
 
   private Item instance;
 
-  private GS_Items() {
-  }
-
   public <T extends Item & IItemModelProvider> T getInstance() {
     return (T) this.instance;
   }
@@ -50,22 +47,26 @@ public enum GS_Items {
   public <T extends Enum<T> & IIdProvider> ItemStack getItemStack(T variant) {
     if (this.instance == null) {
       return null;
-    } else if (this.instance instanceof IMultiItem) {
-      IMultiItem<T> multiItem = (IMultiItem) this.instance;
-      return multiItem.getItemStack(variant);
-    } else if (variant == null) {
-      return new ItemStack(this.instance);
-    } else {
-      throw new IllegalArgumentException("Not applicable");
     }
+
+    if (this.instance instanceof IMultiItem) {
+      IMultiItem<T> multiItem = (IMultiItem<T>) this.instance;
+      return multiItem.getItemStack(variant);
+    }
+
+    if (variant == null) {
+      return new ItemStack(this.instance);
+    }
+
+    throw new IllegalArgumentException("Not applicable");
   }
 
   public <T extends Item & IItemModelProvider> void setInstance(T instance) {
     if (this.instance != null) {
       throw new IllegalStateException("Duplicate instances!");
-    } else {
-      this.instance = instance;
     }
+
+    this.instance = instance;
   }
 
   static void buildItems(Side side) {
@@ -79,21 +80,16 @@ public enum GS_Items {
     GRAVITOOL.setInstance(new ItemGraviTool());
     VAJRA.setInstance(new ItemVajra());
     CRAFTING.setInstance(new ItemCraftingThings());
-    if (side == Side.CLIENT) {
-      doModelGuf();
-    }
 
+    if (side == Side.CLIENT) {
+      registerItemsModels();
+    }
   }
 
   @SideOnly(Side.CLIENT)
-  private static void doModelGuf() {
-    GS_Items[] items = values();
-    int itemsCount = items.length;
-
-    for(int i = 0; i < itemsCount; ++i) {
-      GS_Items item = items[i];
+  private static void registerItemsModels() {
+    for (GraviItem item : values()) {
       item.getInstance().registerModels(null);
     }
-
   }
 }

@@ -20,6 +20,7 @@ import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.Mod.Instance;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
@@ -34,64 +35,68 @@ import org.apache.logging.log4j.Logger;
   acceptedMinecraftVersions = "[1.12,1.12.2]"
 )
 public final class Gravisuite {
-  public static Logger log;
+  @Instance
+  public static Gravisuite Instance;
+
+  public Logger log;
+  public Config config;
+  public GraviKeys keys;
 
   @EventHandler
   public void load(FMLPreInitializationEvent event) {
     log = event.getModLog();
 
-    Config.loadConfig(event.getSuggestedConfigurationFile(), event.getSide().isClient());
-    GraviKeys.addFlyKey();
-    GS_Items.buildItems(event.getSide());
-    this.registerJetpackBlacklist();
+    config = new Config(event.getSuggestedConfigurationFile(), event.getSide().isClient());
+    keys = new GraviKeys();
+
+    config.loadConfig();
+    keys.addKeys();
+    GraviItem.buildItems(event.getSide());
+
+    registerJetpackBlacklist();
   }
 
   @EventHandler
   public void init(FMLInitializationEvent event) {
-    Recipes.addCraftingRecipes();
+    GraviRecipes.addCraftingRecipes();
     if (event.getSide().isClient()) {
       new PrettyUtil();
       new GravisuiteOverlay();
     }
-
   }
 
   @EventHandler
   public void postInit(FMLPostInitializationEvent event) {
-    if (Config.shouldReplaceQuantum) {
-      Recipes.changeQuantumRecipe();
+    if (config.replaceQuantumArmorCraft) {
+      GraviRecipes.changeQuantumRecipe();
     }
 
     if (event.getSide().isClient()) {
-      GraviChestplateColourHandler.register();
+      GraviChestplateColorHandler.register();
     }
-
   }
 
   private void registerJetpackBlacklist() {
-    JetpackAttachmentRecipe.blacklistedItems.add(GS_Items.ADVANCED_JETPACK.getInstance());
-    JetpackAttachmentRecipe.blacklistedItems.add(GS_Items.ADVANCED_NANO_CHESTPLATE.getInstance());
-    JetpackAttachmentRecipe.blacklistedItems.add(GS_Items.GRAVI_CHESTPLATE.getInstance());
+    JetpackAttachmentRecipe.blacklistedItems.add(GraviItem.ADVANCED_JETPACK.getInstance());
+    JetpackAttachmentRecipe.blacklistedItems.add(GraviItem.ADVANCED_NANO_CHESTPLATE.getInstance());
+    JetpackAttachmentRecipe.blacklistedItems.add(GraviItem.GRAVI_CHESTPLATE.getInstance());
   }
 
-  public static void messagePlayer(EntityPlayer player, String message, TextFormatting colour, Object... args) {
-    Object msg;
+  public static void messagePlayer(EntityPlayer player, String message, TextFormatting color, Object... args) {
+    ITextComponent resultMessage;
+
+    if (args.length > 0) {
+      resultMessage = new TextComponentTranslation(message, (Object[]) getMessageComponents(args));
+    } else {
+      resultMessage = new TextComponentString(Localization.translate(message));
+    }
+
+    resultMessage.setStyle(new Style().setColor(color));
+
     if (player.world.isRemote) {
-      if (args.length > 0) {
-        msg = new TextComponentTranslation(message, (Object[])getMessageComponents(args));
-      } else {
-        msg = new TextComponentString(Localization.translate(message));
-      }
-
-      PrettyUtil.mc.ingameGUI.getChatGUI().printChatMessage(((ITextComponent)msg).setStyle((new Style()).setColor(colour)));
+      PrettyUtil.mc.ingameGUI.getChatGUI().printChatMessage(resultMessage);
     } else if (player instanceof EntityPlayerMP) {
-      if (args.length > 0) {
-        msg = new TextComponentTranslation(message, (Object[])getMessageComponents(args));
-      } else {
-        msg = new TextComponentString(Localization.translate(message));
-      }
-
-      ((EntityPlayerMP)player).sendMessage(((ITextComponent)msg).setStyle((new Style()).setColor(colour)));
+      player.sendMessage(resultMessage);
     }
 
   }
@@ -99,12 +104,19 @@ public final class Gravisuite {
   private static ITextComponent[] getMessageComponents(Object... args) {
     ITextComponent[] encodedArgs = new ITextComponent[args.length];
 
-    for(int i = 0; i < args.length; ++i) {
-      if (args[i] instanceof String && ((String)args[i]).startsWith("gravisuite.")) {
-        encodedArgs[i] = new TextComponentTranslation((String)args[i]);
-      } else {
-        encodedArgs[i] = new TextComponentString(args[i].toString());
+    for (int i = 0; i < args.length; ++i) {
+      Object arg = args[i];
+
+      if (arg instanceof String) {
+        String string = (String) args[i];
+
+        if (string.startsWith("gravisuite.")) {
+          encodedArgs[i] = new TextComponentTranslation(string);
+          continue;
+        }
       }
+
+      encodedArgs[i] = new TextComponentString(arg.toString());
     }
 
     return encodedArgs;

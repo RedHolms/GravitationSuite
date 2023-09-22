@@ -8,7 +8,7 @@
 
 package com.chocohead.gravisuite.renders;
 
-import com.chocohead.gravisuite.GS_Items;
+import com.chocohead.gravisuite.GraviItem;
 import com.chocohead.gravisuite.items.ItemAdvancedDrill;
 import com.chocohead.gravisuite.items.ItemAdvancedDrill.DrillMode;
 import ic2.core.util.ReflectionUtil;
@@ -89,7 +89,7 @@ public final class PrettyUtil implements IResourceManagerReloadListener {
     if (event.getSubID() == 0 && event.getTarget().typeOfHit == Type.BLOCK) {
       EntityPlayer player = event.getPlayer();
       ItemStack stack = player.getHeldItem(EnumHand.MAIN_HAND);
-      if (stack != null && stack.getItem() == GS_Items.ADVANCED_DRILL.getInstance() && ItemAdvancedDrill.readDrillMode(stack) == DrillMode.BIG_HOLES) {
+      if (stack != null && stack.getItem() == GraviItem.ADVANCED_DRILL.getInstance() && ItemAdvancedDrill.readDrillMode(stack) == DrillMode.BIG_HOLES) {
         drawAdditionalBlockbreak(event.getContext(), player, event.getPartialTicks(), ItemAdvancedDrill.getBrokenBlocks(player, event.getTarget()));
       }
     }

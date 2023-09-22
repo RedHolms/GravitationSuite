@@ -9,57 +9,80 @@
 package com.chocohead.gravisuite;
 
 import com.chocohead.gravisuite.items.ItemVajra;
-import com.chocohead.gravisuite.renders.GravisuiteOverlay;
+
 import java.io.File;
 import net.minecraftforge.common.config.Configuration;
 
-final class Config {
+class Config {
   private static final String HUD = "HUD settings";
   private static final String CRAFTING = "Recipe settings";
-  static boolean canCraftAdvJetpack;
-  static boolean canCraftAdvNano;
-  static boolean canCraftGravi;
-  static boolean canCraftAdvLappack;
-  static boolean canCraftUltiLappack;
-  static boolean canCraftAdvDrill;
-  static boolean canCraftAdvChainsaw;
-  static boolean canCraftGraviTool;
-  static boolean canCraftVajra;
-  static boolean shouldReplaceQuantum;
+  private static final String VAJRA = "Vajra settings";
 
-  static void loadConfig(File configFile, boolean client) {
-    Gravisuite.log.info("Loading GS Config from " + configFile.getAbsolutePath());
-    Configuration config = new Configuration(configFile);
+  public boolean disableAdvancedJetpackCraft;
+  public boolean disableAdvancedNanoChestplateCraft;
+  public boolean disableGraviChestplateCraft;
+  public boolean disableAdvancedLappackCraft;
+  public boolean disableUltimateLappackCraft;
+  public boolean disableAdvancedDrillCraft;
+  public boolean disableAdvancedChainsawCraft;
+  public boolean disableGraviToolCraft;
+  public boolean disableVajraCraft;
+  public boolean replaceQuantumArmorCraft;
+  public boolean vajraAccurateModeDisabled;
+
+  public boolean gravisuiteOverlayEnabled;
+  public int gravisuiteOverlayPosition;
+
+  private final Configuration m_config;
+  private final boolean m_isClient;
+
+  Config(File configFile, boolean isClient) {
+    m_config = new Configuration(configFile);
+    m_isClient = isClient;
+  }
+
+  void loadConfig() {
+    Gravisuite.Instance.log.info("Loading GraviSuite Config from " + m_config.getConfigFile().getAbsolutePath());
 
     try {
-      config.load();
-      if (client) {
-        GravisuiteOverlay.hudEnabled = config.get(HUD, "enableHud", true).getBoolean(true);
-        GravisuiteOverlay.hudPos = getHudPosition(config);
+      m_config.load();
+
+      if (m_isClient) {
+        gravisuiteOverlayEnabled = getBoolean(HUD, "enableHud", true);
+        gravisuiteOverlayPosition = getHudPosition(HUD, "hudPosition", 1);
       }
 
-      canCraftAdvJetpack = !config.get(CRAFTING, "Disable Advanced Jetpack recipe", false).getBoolean(false);
-      canCraftAdvNano = !config.get(CRAFTING, "Disable Advanced NanoChestPlate recipe", false).getBoolean(false);
-      shouldReplaceQuantum = config.get(CRAFTING, "Change the Quantumsuit BodyArmour recipe", true).getBoolean(true);
-      canCraftGravi = !config.get(CRAFTING, "Disable GraviChestPlate recipe", false).getBoolean(false);
-      canCraftAdvLappack = !config.get(CRAFTING, "Disable AdvancedLappack recipe", false).getBoolean(false);
-      canCraftUltiLappack = !config.get(CRAFTING, "Disable UltimateLappack recipe", false).getBoolean(false);
-      canCraftAdvDrill = !config.get(CRAFTING, "Disable Advanced Diamond Drill recipe", false).getBoolean(false);
-      canCraftAdvChainsaw = !config.get(CRAFTING, "Disable Advanced Chainsaw recipe", false).getBoolean(false);
-      canCraftGraviTool = !config.get(CRAFTING, "Disable GraviTool recipe", false).getBoolean(false);
-      canCraftVajra = !config.get(CRAFTING, "Disable Vajra recipe", false).getBoolean(false);
-      ItemVajra.accurateEnabled = !config.get("Vajra settings", "Disable Vajra accurate mode", false).getBoolean(false);
-    } catch (Exception var7) {
-      Gravisuite.log.fatal("Fatal error reading config file.", var7);
-      throw new RuntimeException(var7);
+      disableAdvancedJetpackCraft = getBoolean(CRAFTING, "Disable Advanced Jetpack recipe", false);
+      disableAdvancedNanoChestplateCraft = getBoolean(CRAFTING, "Disable Advanced NanoChestPlate recipe", false);
+      disableGraviChestplateCraft = getBoolean(CRAFTING, "Disable GraviChestPlate recipe", false);
+      disableAdvancedLappackCraft = getBoolean(CRAFTING, "Disable AdvancedLappack recipe", false);
+      disableUltimateLappackCraft = getBoolean(CRAFTING, "Disable UltimateLappack recipe", false);
+      disableAdvancedDrillCraft = getBoolean(CRAFTING, "Disable Advanced Diamond Drill recipe", false);
+      disableAdvancedChainsawCraft = getBoolean(CRAFTING, "Disable Advanced Chainsaw recipe", false);
+      disableGraviToolCraft = getBoolean(CRAFTING, "Disable GraviTool recipe", false);
+      disableVajraCraft = getBoolean(CRAFTING, "Disable Vajra recipe", false);
+      replaceQuantumArmorCraft = getBoolean(CRAFTING, "Change the Quantumsuit BodyArmour recipe", false);
+      vajraAccurateModeDisabled = getBoolean(VAJRA, "Disable Vajra accurate mode", false);
+    } catch (Exception exception) {
+      Gravisuite.Instance.log.fatal("Fatal error reading config file", exception);
+      throw new RuntimeException(exception);
     } finally {
-      if (config.hasChanged()) {
-        config.save();
+      if (m_config.hasChanged()) {
+        m_config.save();
       }
     }
   }
 
-  private static byte getHudPosition(Configuration config) {
-    return (byte)((config.get(HUD, "hudPosition", 1).getInt(1) - 1) % 4 + 1);
+  private boolean getBoolean(String category, String name, boolean defaultValue) {
+    return m_config.get(category, name, defaultValue).getBoolean(defaultValue);
+  }
+
+  private int getInt(String category, String name, int defaultValue) {
+    return m_config.get(category, name, defaultValue).getInt(defaultValue);
+  }
+
+  private int getHudPosition(String category, String name, int defaultValue) {
+    int rawValue = getInt(category, name, defaultValue);
+    return (rawValue - 1) % 4 + 1;
   }
 }

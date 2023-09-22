@@ -16,13 +16,17 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
-class GraviChestplateColourHandler implements IItemColor {
+class GraviChestplateColorHandler implements IItemColor {
   static void register() {
-    PrettyUtil.mc.getItemColors().registerItemColorHandler(new GraviChestplateColourHandler(), GS_Items.GRAVI_CHESTPLATE.getInstance());
+    PrettyUtil.mc.getItemColors().registerItemColorHandler(
+      new GraviChestplateColorHandler(),
+      GraviItem.GRAVI_CHESTPLATE.getInstance()
+    );
   }
 
   @Override
   public int colorMultiplier(ItemStack stack, int tintIndex) {
-    return tintIndex > 0 ? -1 : ((ItemArmor)stack.getItem()).getColor(stack);
+    ItemArmor armor = (ItemArmor)stack.getItem();
+    return tintIndex > 0 ? -1 : armor.getColor(stack);
   }
 }
