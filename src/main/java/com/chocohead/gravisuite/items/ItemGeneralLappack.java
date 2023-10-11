@@ -32,7 +32,7 @@ public abstract class ItemGeneralLappack extends ItemArmorElectric {
   @SideOnly(Side.CLIENT)
   @Override
   public void registerModels(ItemName name) {
-    ModelLoader.setCustomModelResourceLocation(this, 0, new ModelResourceLocation("gravisuite:" + CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, this.name), (String)null));
+    ModelLoader.setCustomModelResourceLocation(this, 0, new ModelResourceLocation("gravisuite:" + CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, this.name), null));
   }
 
   @Override

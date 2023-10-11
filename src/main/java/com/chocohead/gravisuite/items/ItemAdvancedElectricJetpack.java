@@ -45,9 +45,9 @@ public class ItemAdvancedElectricJetpack extends ItemArmorElectric implements IB
   }
 
   protected ItemAdvancedElectricJetpack(String name, double maxCharge, double transferLimit, int tier) {
-    super((ItemName)null, (String)null, EntityEquipmentSlot.CHEST, maxCharge, transferLimit, tier);
+    super(null, null, EntityEquipmentSlot.CHEST, maxCharge, transferLimit, tier);
     this.name = name;
-    ((ItemAdvancedElectricJetpack)BlocksItems.registerItem(this, new ResourceLocation("gravisuite", name))).setUnlocalizedName(name);
+    BlocksItems.registerItem(this, new ResourceLocation("gravisuite", name)).setUnlocalizedName(name);
     this.setMaxDamage(27);
     this.setMaxStackSize(1);
     this.setNoRepair();
@@ -173,7 +173,7 @@ public class ItemAdvancedElectricJetpack extends ItemArmorElectric implements IB
 
   @Override
   public boolean drainEnergy(ItemStack pack, int amount) {
-    return ElectricItem.manager.discharge(pack, (double)(amount * 6), Integer.MAX_VALUE, true, false, false) > 0.0;
+    return ElectricItem.manager.discharge(pack, amount * 6, Integer.MAX_VALUE, true, false, false) > 0.0;
   }
 
   @Override

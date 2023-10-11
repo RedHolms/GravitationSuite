@@ -9,7 +9,6 @@
 package com.chocohead.gravisuite.items;
 
 import com.chocohead.gravisuite.Gravisuite;
-import com.google.common.base.CaseFormat;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import ic2.api.item.ElectricItem;
@@ -21,9 +20,6 @@ import ic2.core.item.tool.ItemElectricTool;
 import ic2.core.item.tool.ToolClass;
 import ic2.core.ref.ItemName;
 import ic2.core.util.StackUtil;
-import java.util.EnumSet;
-import java.util.Iterator;
-import java.util.List;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.util.ITooltipFlag;
@@ -57,50 +53,74 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Objects;
+
 public class ItemAdvancedChainsaw extends ItemElectricTool {
-  protected static final String NAME = "advancedChainsaw";
+  protected static final String ITEM_NAME = "advancedChainsaw";
+  protected static final String MODEL_NAME = "advanced_chainsaw";
 
   public ItemAdvancedChainsaw() {
     super(null, 100, HarvestLevel.Iron, EnumSet.of(ToolClass.Axe, ToolClass.Sword, ToolClass.Shears));
-    BlocksItems.registerItem(this, new ResourceLocation("gravisuite", NAME)).setUnlocalizedName(NAME);
+
+    BlocksItems.registerItem(this, new ResourceLocation("gravisuite", ITEM_NAME)).setUnlocalizedName(ITEM_NAME);
+
     this.maxCharge = 45000;
     this.transferLimit = 500;
     this.tier = 2;
     this.efficiency = 30.0F;
+
     MinecraftForge.EVENT_BUS.register(this);
   }
 
-  @SideOnly(Side.CLIENT)
   @Override
+  @SideOnly(Side.CLIENT)
   public void registerModels(ItemName name) {
-    ModelLoader.setCustomModelResourceLocation(this, 0, new ModelResourceLocation("gravisuite:" + CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, NAME), null));
+    ModelLoader.setCustomModelResourceLocation(
+      this, 0,
+      new ModelResourceLocation("gravisuite:" + MODEL_NAME, null)
+    );
   }
 
   @Override
   public ActionResult<ItemStack> onItemRightClick(World world, EntityPlayer player, EnumHand hand) {
-    if (!world.isRemote && IC2.keyboard.isModeSwitchKeyDown(player)) {
-      ItemStack stack = StackUtil.get(player, hand);
-      NBTTagCompound nbt = StackUtil.getOrCreateNbtData(stack);
-      if (nbt.getBoolean("disableShear")) {
-        nbt.setBoolean("disableShear", false);
-        Gravisuite.messagePlayer(player, "gravisuite.advancedChainsaw.shear", TextFormatting.DARK_GREEN, Localization.translate("gravisuite.message.on"));
-      } else {
-        nbt.setBoolean("disableShear", true);
-        Gravisuite.messagePlayer(player, "gravisuite.advancedChainsaw.shear", TextFormatting.DARK_RED, Localization.translate("gravisuite.message.off"));
-      }
-
-      return new ActionResult<>(EnumActionResult.SUCCESS, stack);
-    } else {
+    if (world.isRemote)
       return super.onItemRightClick(world, player, hand);
-    }
+
+    if (!IC2.keyboard.isModeSwitchKeyDown(player))
+      return super.onItemRightClick(world, player, hand);
+
+    ItemStack itemStack = StackUtil.get(player, hand);
+
+    NBTTagCompound nbt = StackUtil.getOrCreateNbtData(itemStack);
+
+    boolean disableShear = nbt.getBoolean("disableShear");
+
+    disableShear = !disableShear;
+    nbt.setBoolean("disableShear", disableShear);
+
+    if (disableShear)
+      Gravisuite.messagePlayer(player, "gravisuite.advancedChainsaw.shear", TextFormatting.DARK_RED, Localization.translate("gravisuite.message.off"));
+    else
+      Gravisuite.messagePlayer(player, "gravisuite.advancedChainsaw.shear", TextFormatting.DARK_GREEN, Localization.translate("gravisuite.message.on"));
+
+    return new ActionResult<>(EnumActionResult.SUCCESS, itemStack);
   }
 
   @Override
   public boolean hitEntity(ItemStack stack, EntityLivingBase target, EntityLivingBase attacker) {
     ElectricItem.manager.use(stack, this.operationEnergyCost, attacker);
-    if (attacker instanceof EntityPlayer && target instanceof EntityCreeper && target.getHealth() <= 0.0F) {
+
+    if (
+      attacker instanceof EntityPlayer &&
+      target instanceof EntityCreeper &&
+      target.getHealth() <= 0.0F
+    )
       IC2.achievements.issueAchievement((EntityPlayer)attacker, "killCreeperChainsaw");
-    }
 
     return true;
   }
@@ -108,54 +128,85 @@ public class ItemAdvancedChainsaw extends ItemElectricTool {
   @SubscribeEvent
   public void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
     EntityPlayer player = event.getEntityPlayer();
-    if (!player.world.isRemote) {
-      Entity entity = event.getTarget();
-      ItemStack stack = player.inventory.getStackInSlot(player.inventory.currentItem);
-      if (stack != null && stack.getItem() == this && entity instanceof IShearable && !StackUtil.getOrCreateNbtData(stack).getBoolean("disableShear") && ElectricItem.manager.use(stack, this.operationEnergyCost, player)) {
-        IShearable target = (IShearable)entity;
-        BlockPos pos = new BlockPos(entity);
-        if (target.isShearable(stack, entity.world, pos)) {
-          List<ItemStack> drops = target.onSheared(stack, entity.world, pos, EnchantmentHelper.getEnchantmentLevel(Enchantments.FORTUNE, stack));
 
-          EntityItem item;
-          for(Iterator var8 = drops.iterator(); var8.hasNext(); item.motionZ += (double)((itemRand.nextFloat() - itemRand.nextFloat()) * 0.1F)) {
-            ItemStack drop = (ItemStack)var8.next();
-            item = entity.entityDropItem(drop, 1.0F);
-            item.motionY += (double)(itemRand.nextFloat() * 0.05F);
-            item.motionX += (double)((itemRand.nextFloat() - itemRand.nextFloat()) * 0.1F);
-          }
-        }
-      }
+    if (player.world.isRemote)
+      return;
 
+    Entity entity = event.getTarget();
+    ItemStack itemStack = player.inventory.getStackInSlot(player.inventory.currentItem);
+
+    if (itemStack.getItem() != this)
+      return;
+
+    if (!(entity instanceof IShearable))
+      return;
+
+    if (StackUtil.getOrCreateNbtData(itemStack).getBoolean("disableShear"))
+      return;
+
+    if (!ElectricItem.manager.use(itemStack, this.operationEnergyCost, player))
+      return;
+
+    IShearable shearable = (IShearable)entity;
+    BlockPos entityPosition = new BlockPos(entity);
+
+    if (!shearable.isShearable(itemStack, entity.world, entityPosition))
+      return;
+
+    List<ItemStack> drops = shearable.onSheared(
+      itemStack, entity.world, entityPosition,
+      EnchantmentHelper.getEnchantmentLevel(Enchantments.FORTUNE, itemStack)
+    );
+
+    for (ItemStack drop : drops) {
+      EntityItem item = entity.entityDropItem(drop, 1.0F);
+
+      if (item == null)
+        continue;
+
+      item.motionY += itemRand.nextFloat() * 0.05F;
+      item.motionX += (itemRand.nextFloat() - itemRand.nextFloat()) * 0.1F;
+      item.motionZ += (itemRand.nextFloat() - itemRand.nextFloat()) * 0.1F;
     }
   }
 
   @Override
-  public boolean onBlockStartBreak(ItemStack stack, BlockPos pos, EntityPlayer player) {
+  @ParametersAreNonnullByDefault
+  public boolean onBlockStartBreak(ItemStack itemStack, BlockPos pos, EntityPlayer player) {
     World world = player.world;
-    if (world.isRemote) {
-      return false;
-    } else if (StackUtil.getOrCreateNbtData(stack).getBoolean("disableShear")) {
-      return false;
-    } else {
-      Block block = world.getBlockState(pos).getBlock();
-      if (block instanceof IShearable) {
-        IShearable target = (IShearable)block;
-        if (target.isShearable(stack, world, pos) && ElectricItem.manager.use(stack, this.operationEnergyCost, player)) {
-          List<ItemStack> drops = target.onSheared(stack, world, pos, EnchantmentHelper.getEnchantmentLevel(Enchantments.FORTUNE, stack));
-          Iterator var8 = drops.iterator();
 
-          while(var8.hasNext()) {
-            ItemStack drop = (ItemStack)var8.next();
-            StackUtil.dropAsEntity(world, pos, drop);
-          }
+    if (world.isRemote)
+      return false;
 
-          player.addStat(StatList.getBlockStats(block), 1);
-        }
+    if (StackUtil.getOrCreateNbtData(itemStack).getBoolean("disableShear"))
+      return false;
+
+    Block block = world.getBlockState(pos).getBlock();
+
+    if (block instanceof IShearable) {
+      IShearable shearable = (IShearable)block;
+
+      if (!shearable.isShearable(itemStack, world, pos))
+        return false;
+
+      if (!ElectricItem.manager.use(itemStack, this.operationEnergyCost, player))
+        return false;
+
+      List<ItemStack> drops = shearable.onSheared(
+        itemStack, world, pos,
+        EnchantmentHelper.getEnchantmentLevel(Enchantments.FORTUNE, itemStack)
+      );
+
+      for (ItemStack drop : drops) {
+        StackUtil.dropAsEntity(world, pos, drop);
       }
 
-      return false;
+      player.addStat(
+        Objects.requireNonNull(StatList.getBlockStats(block)), 1
+      );
     }
+
+    return false;
   }
 
   @Override
@@ -164,34 +215,43 @@ public class ItemAdvancedChainsaw extends ItemElectricTool {
   }
 
   @Override
-  public EnumRarity getRarity(ItemStack stack) {
+  @ParametersAreNonnullByDefault
+  public @Nonnull EnumRarity getForgeRarity(ItemStack stack) {
     return EnumRarity.UNCOMMON;
   }
 
-  @SideOnly(Side.CLIENT)
   @Override
-  public void addInformation(ItemStack stack, World world, List<String> tooltip, ITooltipFlag flag) {
+  @SideOnly(Side.CLIENT)
+  @ParametersAreNonnullByDefault
+  public void addInformation(ItemStack stack, @Nullable World world, List<String> tooltip, ITooltipFlag flag) {
     if (StackUtil.getOrCreateNbtData(stack).getBoolean("disableShear")) {
       tooltip.add(TextFormatting.DARK_RED + Localization.translate("gravisuite.advancedChainsaw.shear", Localization.translate("gravisuite.message.off")));
     } else {
       tooltip.add(TextFormatting.DARK_GREEN + Localization.translate("gravisuite.advancedChainsaw.shear", Localization.translate("gravisuite.message.on")));
     }
-
   }
 
   @Override
-  public Multimap<String, AttributeModifier> getAttributeModifiers(EntityEquipmentSlot slot, ItemStack stack) {
-    if (slot != EntityEquipmentSlot.MAINHAND) {
+  @ParametersAreNonnullByDefault
+  public @Nonnull Multimap<String, AttributeModifier> getAttributeModifiers(EntityEquipmentSlot slot, ItemStack stack) {
+    if (slot != EntityEquipmentSlot.MAINHAND)
       return super.getAttributeModifiers(slot, stack);
-    } else {
-      Multimap<String, AttributeModifier> ret = HashMultimap.create();
-      if (ElectricItem.manager.canUse(stack, this.operationEnergyCost)) {
-        ret.put(SharedMonsterAttributes.ATTACK_SPEED.getName(), new AttributeModifier(ATTACK_SPEED_MODIFIER, "Tool modifier", (double)this.attackSpeed, 0));
-        ret.put(SharedMonsterAttributes.ATTACK_DAMAGE.getName(), new AttributeModifier(Item.ATTACK_DAMAGE_MODIFIER, "Tool modifier", 13.0, 0));
-      }
 
-      return ret;
+    Multimap<String, AttributeModifier> modifiers = HashMultimap.create();
+
+    if (ElectricItem.manager.canUse(stack, this.operationEnergyCost)) {
+      modifiers.put(
+        SharedMonsterAttributes.ATTACK_SPEED.getName(),
+        new AttributeModifier(ATTACK_SPEED_MODIFIER, "Tool modifier", this.attackSpeed, 0)
+      );
+
+      modifiers.put(
+        SharedMonsterAttributes.ATTACK_DAMAGE.getName(),
+        new AttributeModifier(Item.ATTACK_DAMAGE_MODIFIER, "Tool modifier", 13.0, 0)
+      );
     }
+
+    return modifiers;
   }
 
   @Override

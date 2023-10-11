@@ -8,16 +8,7 @@
 
 package com.chocohead.gravisuite;
 
-import com.chocohead.gravisuite.items.ItemAdvancedChainsaw;
-import com.chocohead.gravisuite.items.ItemAdvancedDrill;
-import com.chocohead.gravisuite.items.ItemAdvancedElectricJetpack;
-import com.chocohead.gravisuite.items.ItemAdvancedLappack;
-import com.chocohead.gravisuite.items.ItemAdvancedNanoChestplate;
-import com.chocohead.gravisuite.items.ItemCraftingThings;
-import com.chocohead.gravisuite.items.ItemGraviChestplate;
-import com.chocohead.gravisuite.items.ItemGraviTool;
-import com.chocohead.gravisuite.items.ItemUltimateLappack;
-import com.chocohead.gravisuite.items.ItemVajra;
+import com.chocohead.gravisuite.items.*;
 import ic2.core.block.state.IIdProvider;
 import ic2.core.ref.IItemModelProvider;
 import ic2.core.ref.IMultiItem;

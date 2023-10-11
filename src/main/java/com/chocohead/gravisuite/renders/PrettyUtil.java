@@ -12,14 +12,7 @@ import com.chocohead.gravisuite.GraviItem;
 import com.chocohead.gravisuite.items.ItemAdvancedDrill;
 import com.chocohead.gravisuite.items.ItemAdvancedDrill.DrillMode;
 import ic2.core.util.ReflectionUtil;
-import java.lang.reflect.Field;
-import java.util.Collection;
-import java.util.Iterator;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockChest;
-import net.minecraft.block.BlockEnderChest;
-import net.minecraft.block.BlockSign;
-import net.minecraft.block.BlockSkull;
+import net.minecraft.block.*;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
@@ -41,8 +34,8 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.RayTraceResult.Type;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.DrawBlockHighlightEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -51,6 +44,8 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.lang.reflect.Field;
+import java.util.Collection;
 
 @SideOnly(Side.CLIENT)
 public final class PrettyUtil implements IResourceManagerReloadListener {

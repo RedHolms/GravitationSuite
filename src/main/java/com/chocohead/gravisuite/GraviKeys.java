@@ -11,9 +11,6 @@ package com.chocohead.gravisuite;
 import ic2.core.IC2;
 import ic2.core.util.Keyboard;
 import ic2.core.util.ReflectionUtil;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.Set;
 import net.minecraft.client.settings.GameSettings;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.player.EntityPlayer;
@@ -22,6 +19,10 @@ import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.apache.commons.lang3.ArrayUtils;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.Set;
 
 public class GraviKeys extends Keyboard {
   public static final Keyboard.IKeyWatcher FlyKey;

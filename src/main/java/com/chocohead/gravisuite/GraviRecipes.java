@@ -8,15 +8,14 @@
 
 package com.chocohead.gravisuite;
 
-import com.chocohead.gravisuite.items.ItemGraviChestplate;
 import com.chocohead.gravisuite.items.ItemCraftingThings.CraftingThingType;
+import com.chocohead.gravisuite.items.ItemGraviChestplate;
 import ic2.api.item.IC2Items;
 import ic2.core.init.Rezepte;
 import ic2.core.recipe.AdvRecipe;
 import ic2.core.recipe.ArmorDyeingRecipe;
 import ic2.core.recipe.ColourCarryingRecipe;
 import ic2.core.util.StackUtil;
-import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.Item;
@@ -28,6 +27,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 public final class GraviRecipes {
@@ -312,7 +312,7 @@ public final class GraviRecipes {
           }
 
           @ParametersAreNonnullByDefault
-          public ItemStack getCraftingResult(InventoryCrafting inv) {
+          public @Nonnull ItemStack getCraftingResult(InventoryCrafting inv) {
             return this.replacement.getCraftingResult(inv);
           }
 
@@ -320,12 +320,12 @@ public final class GraviRecipes {
             return this.replacement.canFit(width, height);
           }
 
-          public ItemStack getRecipeOutput() {
+          public @Nonnull ItemStack getRecipeOutput() {
             return this.replacement.getRecipeOutput();
           }
 
           @ParametersAreNonnullByDefault
-          public NonNullList<ItemStack> getRemainingItems(InventoryCrafting inv) {
+          public @Nonnull NonNullList<ItemStack> getRemainingItems(InventoryCrafting inv) {
             return this.replacement.getRemainingItems(inv);
           }
 

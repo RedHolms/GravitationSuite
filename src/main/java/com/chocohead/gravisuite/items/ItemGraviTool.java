@@ -212,7 +212,7 @@ public class ItemGraviTool extends ItemTool implements IElectricItem, IItemModel
           }
 
           if (block == Blocks.DIRT) {
-            switch ((BlockDirt.DirtType)state.getValue(BlockDirt.VARIANT)) {
+            switch (state.getValue(BlockDirt.VARIANT)) {
               case DIRT:
                 return this.setHoedBlock(stack, player, world, pos, Blocks.FARMLAND.getDefaultState());
               case COARSE_DIRT:
@@ -333,7 +333,7 @@ public class ItemGraviTool extends ItemTool implements IElectricItem, IItemModel
             Iterator<ItemStack> var14 = var13.iterator();
 
             while(var14.hasNext()) {
-              ItemStack drop = (ItemStack)var14.next();
+              ItemStack drop = var14.next();
               StackUtil.dropAsEntity(world, pos, drop);
             }
 
@@ -354,7 +354,7 @@ public class ItemGraviTool extends ItemTool implements IElectricItem, IItemModel
     IBlockState state = Util.getBlockState(world, pos);
     Block block = state.getBlock();
     if (!block.isAir(state, world, pos) && block instanceof BlockHorizontal && checkNecessaryPower(stack, 500.0, player)) {
-      EnumFacing facing = (EnumFacing)state.getValue(BlockHorizontal.FACING);
+      EnumFacing facing = state.getValue(BlockHorizontal.FACING);
       if (player.isSneaking()) {
         facing = facing.rotateYCCW();
       } else {
