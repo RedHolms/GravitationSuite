@@ -9,7 +9,6 @@
 package com.chocohead.gravisuite.items;
 
 import com.chocohead.gravisuite.Gravisuite;
-import com.google.common.base.CaseFormat;
 import ic2.core.IC2;
 import ic2.core.init.BlocksItems;
 import ic2.core.init.Localization;
@@ -17,10 +16,6 @@ import ic2.core.item.tool.HarvestLevel;
 import ic2.core.item.tool.ItemDrill;
 import ic2.core.ref.ItemName;
 import ic2.core.util.StackUtil;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -31,11 +26,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.EnumRarity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.server.SPacketBlockChange;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.text.TextFormatting;
@@ -45,19 +36,38 @@ import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 public class ItemAdvancedDrill extends ItemDrill {
+  protected static final String ITEM_NAME = "advancedDrill";
+  protected static final String MODEL_NAME = "advanced_drill";
+
   protected static final Material[] MATERIALS;
-  protected static final String NAME = "advancedDrill";
+
+  static {
+    MATERIALS = new Material[] {
+      Material.ROCK, Material.GRASS, Material.GROUND, Material.SAND, Material.CLAY
+    };
+  }
 
   public ItemAdvancedDrill() {
     super(null, 160, HarvestLevel.Iridium, 45000, 500, 2, ItemAdvancedDrill.DrillMode.NORMAL.drillSpeed);
-    BlocksItems.registerItem(this, new ResourceLocation("gravisuite", NAME)).setUnlocalizedName(NAME);
+
+    BlocksItems.registerItem(this, new ResourceLocation("gravisuite", ITEM_NAME)).setUnlocalizedName(ITEM_NAME);
   }
 
-  @SideOnly(Side.CLIENT)
   @Override
+  @SideOnly(Side.CLIENT)
   public void registerModels(ItemName name) {
-    ModelLoader.setCustomModelResourceLocation(this, 0, new ModelResourceLocation("gravisuite:" + CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, NAME), null));
+    ModelLoader.setCustomModelResourceLocation(
+      this, 0,
+      new ModelResourceLocation("gravisuite:" + MODEL_NAME, null)
+    );
   }
 
   public static DrillMode readDrillMode(ItemStack stack) {
@@ -79,20 +89,23 @@ public class ItemAdvancedDrill extends ItemDrill {
 
   @Override
   public ActionResult<ItemStack> onItemRightClick(World world, EntityPlayer player, EnumHand hand) {
-    if (IC2.keyboard.isModeSwitchKeyDown(player)) {
-      ItemStack stack = StackUtil.get(player, hand);
-      if (!world.isRemote) {
-        DrillMode mode = readNextDrillMode(stack);
-        saveDrillMode(stack, mode);
-        Gravisuite.messagePlayer(player, "gravisuite.advancedDrill.mode", mode.colour, mode.translationName);
-        this.efficiency = mode.drillSpeed;
-        this.operationEnergyCost = mode.energyCost;
-      }
-
-      return new ActionResult<>(EnumActionResult.SUCCESS, stack);
-    } else {
+    if (!IC2.keyboard.isModeSwitchKeyDown(player))
       return super.onItemRightClick(world, player, hand);
-    }
+
+    ItemStack itemStack = StackUtil.get(player, hand);
+
+    if (world.isRemote)
+      return new ActionResult<>(EnumActionResult.SUCCESS, itemStack);
+
+    DrillMode drillMode = readNextDrillMode(itemStack);
+    saveDrillMode(itemStack, drillMode);
+
+    this.efficiency = drillMode.drillSpeed;
+    this.operationEnergyCost = drillMode.energyCost;
+
+    Gravisuite.messagePlayer(player, "gravisuite.advancedDrill.mode", drillMode.color, drillMode.translationName);
+
+    return new ActionResult<>(EnumActionResult.SUCCESS, itemStack);
   }
 
   public static Collection<BlockPos> getBrokenBlocks(EntityPlayer player, RayTraceResult ray) {
@@ -114,6 +127,7 @@ public class ItemAdvancedDrill extends ItemDrill {
         break;
       case Z:
         zMove = 0;
+        break;
     }
 
     World world = player.world;
@@ -134,126 +148,142 @@ public class ItemAdvancedDrill extends ItemDrill {
   }
 
   protected static boolean canBlockBeMined(World world, BlockPos pos, EntityPlayer player, boolean skipEffectivity) {
-    IBlockState state = world.getBlockState(pos);
-    return state.getBlock().canHarvestBlock(world, pos, player) && (skipEffectivity || isEffective(state.getMaterial())) && state.getPlayerRelativeBlockHardness(player, world, pos) != 0.0F;
+    IBlockState blockState = world.getBlockState(pos);
+
+    if (!blockState.getBlock().canHarvestBlock(world, pos, player))
+      return false;
+
+    if (!skipEffectivity && !isEffective(blockState.getMaterial()))
+      return false;
+
+    return blockState.getPlayerRelativeBlockHardness(player, world, pos) != 0.0F;
   }
 
   protected static boolean isEffective(Material material) {
-    Material[] materials = MATERIALS;
-    int materialsCount = materials.length;
-
-    for(int i = 0; i < materialsCount; ++i) {
-      Material option = materials[i];
-      if (material == option) {
+    for (Material effectiveMaterial : MATERIALS) {
+      if (material == effectiveMaterial)
         return true;
-      }
     }
 
     return false;
   }
 
   @Override
+  @ParametersAreNonnullByDefault
   public boolean onBlockStartBreak(ItemStack stack, BlockPos pos, EntityPlayer player) {
-    World world;
-    if (readDrillMode(stack) == ItemAdvancedDrill.DrillMode.BIG_HOLES && !(world = player.world).isRemote) {
-      Collection<BlockPos> blocks = getBrokenBlocks(player, this.rayTrace(world, player, true));
-      if (!blocks.contains(pos) && canBlockBeMined(world, pos, player, true)) {
-        blocks.add(pos);
-      }
+    World world = player.world;
 
-      boolean powerRanOut = false;
-      Iterator var7 = blocks.iterator();
-
-      while(var7.hasNext()) {
-        BlockPos blockPos = (BlockPos)var7.next();
-        if (!ItemGraviTool.hasNecessaryPower(stack, this.operationEnergyCost, player)) {
-          powerRanOut = true;
-          break;
-        }
-
-        if (world.isBlockLoaded(blockPos)) {
-          IBlockState state = world.getBlockState(blockPos);
-          Block block = state.getBlock();
-          if (!block.isAir(state, world, blockPos)) {
-            int experience;
-            if (player instanceof EntityPlayerMP) {
-              experience = ForgeHooks.onBlockBreakEvent(world, ((EntityPlayerMP)player).interactionManager.getGameType(), (EntityPlayerMP)player, blockPos);
-              if (experience < 0) {
-                return false;
-              }
-            } else {
-              experience = 0;
-            }
-
-            block.onBlockHarvested(world, blockPos, state, player);
-            if (player.isCreative()) {
-              if (block.removedByPlayer(state, world, blockPos, player, false)) {
-                block.onBlockDestroyedByPlayer(world, blockPos, state);
-              }
-            } else {
-              if (block.removedByPlayer(state, world, blockPos, player, true)) {
-                block.onBlockDestroyedByPlayer(world, blockPos, state);
-                block.harvestBlock(world, player, blockPos, state, world.getTileEntity(blockPos), stack);
-                if (experience > 0) {
-                  block.dropXpOnBlockBreak(world, blockPos, experience);
-                }
-              }
-
-              stack.onBlockDestroyed(world, state, blockPos, player);
-            }
-
-            world.playEvent(2001, blockPos, Block.getStateId(state));
-            ((EntityPlayerMP)player).connection.sendPacket(new SPacketBlockChange(world, blockPos));
-          }
-        }
-      }
-
-      if (powerRanOut) {
-        IC2.platform.messagePlayer(player, "gravisuite.advancedDrill.ranOut");
-      }
-
-      return true;
-    } else {
+    if (readDrillMode(stack) != DrillMode.BIG_HOLES || world.isRemote)
       return super.onBlockStartBreak(stack, pos, player);
+
+    Collection<BlockPos> brokenBlocks = getBrokenBlocks(player, this.rayTrace(world, player, true));
+
+    if (!brokenBlocks.contains(pos) && canBlockBeMined(world, pos, player, true))
+      brokenBlocks.add(pos);
+
+    boolean powerRanOut = false;
+
+    for (BlockPos brokenBlockPos : brokenBlocks) {
+      if (!ItemGraviTool.hasNecessaryPower(stack, this.operationEnergyCost, player)) {
+        powerRanOut = true;
+        break;
+      }
+
+      if (!world.isBlockLoaded(brokenBlockPos))
+        continue;
+
+      IBlockState brokenBlockState = world.getBlockState(brokenBlockPos);
+      Block brokenBlock = brokenBlockState.getBlock();
+
+      if (brokenBlock.isAir(brokenBlockState, world, brokenBlockPos))
+        continue;
+
+      int experience = 0;
+
+      if (player instanceof EntityPlayerMP) {
+        EntityPlayerMP playerMP = (EntityPlayerMP)player;
+
+        experience = ForgeHooks.onBlockBreakEvent(
+          world, playerMP.interactionManager.getGameType(),
+          playerMP, brokenBlockPos
+        );
+
+        if (experience < 0)
+          return false;
+      }
+
+      brokenBlock.onBlockHarvested(world, brokenBlockPos, brokenBlockState, player);
+
+      if (player.isCreative()) {
+        if (brokenBlock.removedByPlayer(brokenBlockState, world, brokenBlockPos, player, false))
+          brokenBlock.onBlockDestroyedByPlayer(world, brokenBlockPos, brokenBlockState);
+      } else {
+        if (brokenBlock.removedByPlayer(brokenBlockState, world, brokenBlockPos, player, true)) {
+          brokenBlock.onBlockDestroyedByPlayer(world, brokenBlockPos, brokenBlockState);
+          brokenBlock.harvestBlock(
+            world, player, brokenBlockPos,
+            brokenBlockState, world.getTileEntity(brokenBlockPos), stack
+          );
+
+          if (experience > 0)
+            brokenBlock.dropXpOnBlockBreak(world, brokenBlockPos, experience);
+        }
+
+        stack.onBlockDestroyed(world, brokenBlockState, brokenBlockPos, player);
+      }
+
+      world.playEvent(2001, brokenBlockPos, Block.getStateId(brokenBlockState));
+
+      // May be bug (casting to EntityPlayerMP)
+      ((EntityPlayerMP)player).connection.sendPacket(new SPacketBlockChange(world, brokenBlockPos));
     }
+
+    if (powerRanOut)
+      IC2.platform.messagePlayer(player, "gravisuite.advancedDrill.ranOut");
+
+    return true;
   }
 
   @Override
-  public EnumRarity getRarity(ItemStack stack) {
+  @ParametersAreNonnullByDefault
+  public @Nonnull EnumRarity getForgeRarity(ItemStack stack) {
     return EnumRarity.UNCOMMON;
   }
 
-  @SideOnly(Side.CLIENT)
   @Override
-  public void addInformation(ItemStack stack, World world, List<String> tooltip, ITooltipFlag flag) {
-    tooltip.add(TextFormatting.GOLD + Localization.translate("gravisuite.advancedDrill.mode", TextFormatting.WHITE + Localization.translate(readDrillMode(stack).translationName)));
-  }
-
-  static {
-    MATERIALS = new Material[]{Material.ROCK, Material.GRASS, Material.GROUND, Material.SAND, Material.CLAY};
+  @SideOnly(Side.CLIENT)
+  @ParametersAreNonnullByDefault
+  public void addInformation(ItemStack stack, @Nullable World world, List<String> tooltip, ITooltipFlag flag) {
+    tooltip.add(
+      TextFormatting.GOLD + Localization.translate(
+        "gravisuite.advancedDrill.mode",
+        TextFormatting.WHITE + Localization.translate(readDrillMode(stack).translationName)
+      )
+    );
   }
 
   public enum DrillMode {
-    NORMAL(TextFormatting.DARK_GREEN, 35.0F, 160.0),
-    LOW_POWER(TextFormatting.GOLD, 16.0F, 80.0),
-    FINE(TextFormatting.AQUA, 10.0F, 50.0),
-    BIG_HOLES(TextFormatting.LIGHT_PURPLE, 16.0F, 160.0);
+    NORMAL    ("normal", TextFormatting.DARK_GREEN, 35.0F, 160.0),
+    LOW_POWER ("lowPower", TextFormatting.GOLD, 16.0F, 80.0),
+    FINE      ("fine", TextFormatting.AQUA, 10.0F, 50.0),
+    BIG_HOLES ("bigHoles", TextFormatting.LIGHT_PURPLE, 16.0F, 160.0);
 
-    public final String translationName;
-    public final TextFormatting colour;
-    public final double energyCost;
-    public final float drillSpeed;
     private static final DrillMode[] VALUES = values();
 
-    DrillMode(TextFormatting colour, float speed, double energyCost) {
-      this.translationName = "gravisuite.advancedDrill." + CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, this.name());
-      this.energyCost = energyCost;
+    public final String translationName;
+    public final TextFormatting color;
+    public final float drillSpeed;
+    public final double energyCost;
+
+    DrillMode(String translationName, TextFormatting color, float speed, double energyCost) {
+      this.translationName = "gravisuite.advancedDrill." + translationName;
+      this.color = color;
       this.drillSpeed = speed;
-      this.colour = colour;
+      this.energyCost = energyCost;
     }
 
-    public static DrillMode getFromID(int ID) {
-      return VALUES[ID % VALUES.length];
+    public static DrillMode getFromID(int id) {
+      return VALUES[id % VALUES.length];
     }
   }
 }
