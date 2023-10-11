@@ -91,7 +91,7 @@ public class ItemAdvancedElectricJetpack extends ItemArmorElectric implements IB
   public void onArmorTick(World world, EntityPlayer player, ItemStack stack) {
     NBTTagCompound nbt = StackUtil.getOrCreateNbtData(stack);
     byte toggleTimer = nbt.getByte("toggleTimer");
-    if (GraviKeys.isFlyKeyDown(player) && toggleTimer == 0) {
+    if (Gravisuite.Instance.keys.isFlyKeyDown(player) && toggleTimer == 0) {
       toggleTimer = 10;
       nbt.setByte("toggleTimer", (byte)10);
       if (!world.isRemote) {

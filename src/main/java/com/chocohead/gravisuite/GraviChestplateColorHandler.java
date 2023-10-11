@@ -8,7 +8,7 @@
 
 package com.chocohead.gravisuite;
 
-import com.chocohead.gravisuite.renders.PrettyUtil;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.color.IItemColor;
 import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
@@ -18,7 +18,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 @SideOnly(Side.CLIENT)
 class GraviChestplateColorHandler implements IItemColor {
   static void register() {
-    PrettyUtil.mc.getItemColors().registerItemColorHandler(
+    Minecraft.getMinecraft().getItemColors().registerItemColorHandler(
       new GraviChestplateColorHandler(),
       GraviItem.GRAVI_CHESTPLATE.getInstance()
     );

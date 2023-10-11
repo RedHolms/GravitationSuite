@@ -9,13 +9,14 @@
 package com.chocohead.gravisuite;
 
 import com.chocohead.gravisuite.items.ItemGraviChestplate;
-import com.chocohead.gravisuite.items.ItemCraftingThings.CraftingTypes;
+import com.chocohead.gravisuite.items.ItemCraftingThings.CraftingThingType;
 import ic2.api.item.IC2Items;
 import ic2.core.init.Rezepte;
 import ic2.core.recipe.AdvRecipe;
 import ic2.core.recipe.ArmorDyeingRecipe;
 import ic2.core.recipe.ColourCarryingRecipe;
 import ic2.core.util.StackUtil;
+import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.Item;
@@ -27,6 +28,8 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 public final class GraviRecipes {
   @SuppressWarnings("DataFlowIssue")
   static void addCraftingRecipes() {
@@ -36,7 +39,7 @@ public final class GraviRecipes {
     );
 
     addShapedRecipe(
-      expandStack(GraviItem.CRAFTING.getItemStack(CraftingTypes.SUPERCONDUCTOR_COVER), 3),
+      expandStack(GraviItem.CRAFTING.getItemStack(CraftingThingType.SUPERCONDUCTOR_COVER), 3),
 
       "APA",
       "CCC",
@@ -48,19 +51,19 @@ public final class GraviRecipes {
     );
 
     addShapedRecipe(
-      expandStack(GraviItem.CRAFTING.getItemStack(CraftingTypes.SUPERCONDUCTOR), 3),
+      expandStack(GraviItem.CRAFTING.getItemStack(CraftingThingType.SUPERCONDUCTOR), 3),
 
       "SSS",
       "CGC",
       "SSS",
 
-      'S', GraviItem.CRAFTING.getItemStack(CraftingTypes.SUPERCONDUCTOR_COVER),
+      'S', GraviItem.CRAFTING.getItemStack(CraftingThingType.SUPERCONDUCTOR_COVER),
       'G', "ingotGold",
       'C', IC2Items.getItem("cable", "type:glass,insulation:0")
     );
 
     addShapedRecipe(
-      GraviItem.CRAFTING.getItemStack(CraftingTypes.COOLING_CORE),
+      GraviItem.CRAFTING.getItemStack(CraftingThingType.COOLING_CORE),
 
       "CSC",
       "HPH",
@@ -73,21 +76,19 @@ public final class GraviRecipes {
     );
 
     addShapedRecipe(
-      GraviItem.CRAFTING.getItemStack(CraftingTypes.GRAVITATION_ENGINE),
+      GraviItem.CRAFTING.getItemStack(CraftingThingType.GRAVITATION_ENGINE),
 
       "TST",
       "CHC",
       "TST",
 
       'T', IC2Items.getItem("te", "tesla_coil"),
-      'S', GraviItem.CRAFTING.getItemStack(CraftingTypes.SUPERCONDUCTOR),
-      'C', GraviItem.CRAFTING.getItemStack(CraftingTypes.COOLING_CORE),
+      'S', GraviItem.CRAFTING.getItemStack(CraftingThingType.SUPERCONDUCTOR),
+      'C', GraviItem.CRAFTING.getItemStack(CraftingThingType.COOLING_CORE),
       'H', IC2Items.getItem("te", "hv_transformer")
     );
 
-    Config config = Gravisuite.Instance.config;
-
-    if (!config.disableAdvancedLappackCraft) {
+    if (!GraviConfig.DisableAdvancedLappackCraft) {
       addShapedRecipe(
         new ItemStack(GraviItem.ADVANCED_LAPPACK.getInstance()),
 
@@ -101,9 +102,9 @@ public final class GraviRecipes {
       );
     }
 
-    if (!config.disableAdvancedJetpackCraft) {
+    if (!GraviConfig.DisableAdvancedJetpackCraft) {
       addShapedRecipe(
-        GraviItem.CRAFTING.getItemStack(CraftingTypes.ENGINE_BOOSTER),
+        GraviItem.CRAFTING.getItemStack(CraftingThingType.ENGINE_BOOSTER),
         "GAG",
         "COC",
         "AVA",
@@ -124,14 +125,14 @@ public final class GraviRecipes {
 
         'C', IC2Items.getItem("crafting", "carbon_plate"),
         'J', StackUtil.copyWithWildCard(IC2Items.getItem("jetpack_electric")),
-        'B', GraviItem.CRAFTING.getItemStack(CraftingTypes.ENGINE_BOOSTER),
+        'B', GraviItem.CRAFTING.getItemStack(CraftingThingType.ENGINE_BOOSTER),
         'L', StackUtil.copyWithWildCard(new ItemStack(GraviItem.ADVANCED_LAPPACK.getInstance())),
         'G', IC2Items.getItem("cable", "type:glass,insulation:0"),
         'A', IC2Items.getItem("crafting", "advanced_circuit")
       );
     }
 
-    if (!config.disableAdvancedNanoChestplateCraft) {
+    if (!GraviConfig.DisableAdvancedNanoChestplateCraft) {
       addShapedRecipe(
         new ItemStack(GraviItem.ADVANCED_NANO_CHESTPLATE.getInstance()),
 
@@ -147,7 +148,7 @@ public final class GraviRecipes {
       );
     }
 
-    if (!config.disableUltimateLappackCraft) {
+    if (!GraviConfig.DisableUltimateLappackCraft) {
       addShapedRecipe(
         new ItemStack(GraviItem.ULTIMATE_LAPPACK.getInstance()),
 
@@ -158,7 +159,7 @@ public final class GraviRecipes {
         'C', StackUtil.copyWithWildCard(IC2Items.getItem("lapotron_crystal")),
         'P', IC2Items.getItem("crafting", "iridium"),
         'L', StackUtil.copyWithWildCard(IC2Items.getItem("lappack")),
-        'S', GraviItem.CRAFTING.getItemStack(CraftingTypes.SUPERCONDUCTOR)
+        'S', GraviItem.CRAFTING.getItemStack(CraftingThingType.SUPERCONDUCTOR)
       );
 
       addShapedRecipe(
@@ -171,11 +172,11 @@ public final class GraviRecipes {
         'C', StackUtil.copyWithWildCard(IC2Items.getItem("lapotron_crystal")),
         'P', IC2Items.getItem("crafting", "iridium"),
         'L', StackUtil.copyWithWildCard(new ItemStack(GraviItem.ADVANCED_LAPPACK.getInstance())),
-        'S', GraviItem.CRAFTING.getItemStack(CraftingTypes.SUPERCONDUCTOR)
+        'S', GraviItem.CRAFTING.getItemStack(CraftingThingType.SUPERCONDUCTOR)
       );
     }
 
-    if (!config.disableGraviChestplateCraft) {
+    if (!GraviConfig.DisableGraviChestplateCraft) {
       addShapedColourRecipe(
         new ItemStack(GraviItem.GRAVI_CHESTPLATE.getInstance()),
 
@@ -183,15 +184,15 @@ public final class GraviRecipes {
         "DBD",
         "SCS",
 
-        'S', GraviItem.CRAFTING.getItemStack(CraftingTypes.SUPERCONDUCTOR),
+        'S', GraviItem.CRAFTING.getItemStack(CraftingThingType.SUPERCONDUCTOR),
         'A', StackUtil.copyWithWildCard(IC2Items.getItem("quantum_chestplate")),
-        'D', GraviItem.CRAFTING.getItemStack(CraftingTypes.GRAVITATION_ENGINE),
+        'D', GraviItem.CRAFTING.getItemStack(CraftingThingType.GRAVITATION_ENGINE),
         'B', IC2Items.getItem("te", "hv_transformer"),
         'C', StackUtil.copyWithWildCard(new ItemStack(GraviItem.ULTIMATE_LAPPACK.getInstance()))
       );
     }
 
-    if (!config.disableAdvancedDrillCraft) {
+    if (!GraviConfig.DisableAdvancedDrillCraft) {
       addShapedRecipe(
         new ItemStack(GraviItem.ADVANCED_DRILL.getInstance()),
 
@@ -204,7 +205,7 @@ public final class GraviRecipes {
       );
     }
 
-    if (!config.disableAdvancedChainsawCraft) {
+    if (!GraviConfig.DisableAdvancedChainsawCraft) {
       addShapedRecipe(
         new ItemStack(GraviItem.ADVANCED_CHAINSAW.getInstance()),
         " D ",
@@ -218,7 +219,7 @@ public final class GraviRecipes {
       );
     }
 
-    if (!config.disableGraviToolCraft) {
+    if (!GraviConfig.DisableGraviToolCraft) {
       addShapedRecipe(
         new ItemStack(GraviItem.GRAVITOOL.getInstance()),
 
@@ -236,9 +237,9 @@ public final class GraviRecipes {
       );
     }
 
-    if (!config.disableVajraCraft) {
+    if (!GraviConfig.DisableVajraCraft) {
       addShapedRecipe(
-        GraviItem.CRAFTING.getItemStack(CraftingTypes.MAGNETRON),
+        GraviItem.CRAFTING.getItemStack(CraftingThingType.MAGNETRON),
 
         "ICI",
         "CSC",
@@ -246,20 +247,20 @@ public final class GraviRecipes {
 
         'I', "plateIron",
         'C', "plateCopper",
-        'S', GraviItem.CRAFTING.getItemStack(CraftingTypes.SUPERCONDUCTOR)
+        'S', GraviItem.CRAFTING.getItemStack(CraftingThingType.SUPERCONDUCTOR)
       );
 
       addShapedRecipe(
-        GraviItem.CRAFTING.getItemStack(CraftingTypes.VAJRA_CORE),
+        GraviItem.CRAFTING.getItemStack(CraftingThingType.VAJRA_CORE),
 
         " M ",
         "PTP",
         "SHS",
 
-        'M', GraviItem.CRAFTING.getItemStack(CraftingTypes.MAGNETRON),
+        'M', GraviItem.CRAFTING.getItemStack(CraftingThingType.MAGNETRON),
         'P', IC2Items.getItem("crafting", "iridium"),
         'T', IC2Items.getItem("te", "tesla_coil"),
-        'S', GraviItem.CRAFTING.getItemStack(CraftingTypes.SUPERCONDUCTOR),
+        'S', GraviItem.CRAFTING.getItemStack(CraftingThingType.SUPERCONDUCTOR),
         'H', IC2Items.getItem("te", "hv_transformer")
       );
 
@@ -273,7 +274,7 @@ public final class GraviRecipes {
         'P', "plateIron",
         'E', StackUtil.copyWithWildCard(IC2Items.getItem("energy_crystal")),
         'C', IC2Items.getItem("crafting", "carbon_plate"),
-        'V', GraviItem.CRAFTING.getItemStack(CraftingTypes.VAJRA_CORE),
+        'V', GraviItem.CRAFTING.getItemStack(CraftingThingType.VAJRA_CORE),
         'A', IC2Items.getItem("crafting", "alloy"),
         'L', StackUtil.copyWithWildCard(IC2Items.getItem("lapotron_crystal"))
       );
@@ -281,7 +282,7 @@ public final class GraviRecipes {
   }
 
   static void changeQuantumRecipe() {
-    assert Gravisuite.Instance.config.replaceQuantumArmorCraft;
+    assert GraviConfig.ReplaceQuantumArmorCraft;
 
     Item quantumSuit = IC2Items.getItem("quantum_chestplate").getItem();
 
@@ -305,10 +306,12 @@ public final class GraviRecipes {
             );
           }
 
+          @ParametersAreNonnullByDefault
           public boolean matches(InventoryCrafting inv, World world) {
             return this.replacement.matches(inv, world);
           }
 
+          @ParametersAreNonnullByDefault
           public ItemStack getCraftingResult(InventoryCrafting inv) {
             return this.replacement.getCraftingResult(inv);
           }
@@ -321,6 +324,7 @@ public final class GraviRecipes {
             return this.replacement.getRecipeOutput();
           }
 
+          @ParametersAreNonnullByDefault
           public NonNullList<ItemStack> getRemainingItems(InventoryCrafting inv) {
             return this.replacement.getRemainingItems(inv);
           }

@@ -38,35 +38,35 @@ public enum GraviItem {
   VAJRA,
   CRAFTING;
 
-  private Item instance;
+  private Item m_instance;
 
   public <T extends Item & IItemModelProvider> T getInstance() {
-    return (T) this.instance;
+    return (T) this.m_instance;
   }
 
   public <T extends Enum<T> & IIdProvider> ItemStack getItemStack(T variant) {
-    if (this.instance == null) {
+    if (this.m_instance == null) {
       return null;
     }
 
-    if (this.instance instanceof IMultiItem) {
-      IMultiItem<T> multiItem = (IMultiItem<T>) this.instance;
+    if (this.m_instance instanceof IMultiItem) {
+      IMultiItem<T> multiItem = (IMultiItem<T>) this.m_instance;
       return multiItem.getItemStack(variant);
     }
 
     if (variant == null) {
-      return new ItemStack(this.instance);
+      return new ItemStack(this.m_instance);
     }
 
     throw new IllegalArgumentException("Not applicable");
   }
 
   public <T extends Item & IItemModelProvider> void setInstance(T instance) {
-    if (this.instance != null) {
+    if (this.m_instance != null) {
       throw new IllegalStateException("Duplicate instances!");
     }
 
-    this.instance = instance;
+    this.m_instance = instance;
   }
 
   static void buildItems(Side side) {

@@ -23,19 +23,19 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.apache.commons.lang3.ArrayUtils;
 
-public final class GraviKeys extends Keyboard {
-  private final Keyboard.IKeyWatcher m_flyKey;
+public class GraviKeys extends Keyboard {
+  public static final Keyboard.IKeyWatcher FlyKey;
 
-  GraviKeys() {
-    m_flyKey = new KeyWatcher(GraviKeys.Key.fly);
+  static {
+    FlyKey = new KeyWatcher(GraviKeys.Key.fly);
   }
 
-  public void addKeys() {
-    IC2.keyboard.addKeyWatcher(m_flyKey);
+  public static void init() {
+    IC2.keyboard.addKeyWatcher(FlyKey);
   }
 
-  public boolean isFlyKeyDown(EntityPlayer player) {
-    return IC2.keyboard.isKeyDown(player, m_flyKey);
+  public static boolean isFlyKeyDown(EntityPlayer player) {
+    return IC2.keyboard.isKeyDown(player, FlyKey);
   }
 
   private static class KeyWatcher implements Keyboard.IKeyWatcher {

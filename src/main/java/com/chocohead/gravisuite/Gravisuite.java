@@ -12,6 +12,7 @@ import com.chocohead.gravisuite.renders.GravisuiteOverlay;
 import com.chocohead.gravisuite.renders.PrettyUtil;
 import ic2.core.init.Localization;
 import ic2.core.item.armor.jetpack.JetpackAttachmentRecipe;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.text.ITextComponent;
@@ -35,22 +36,14 @@ import org.apache.logging.log4j.Logger;
   acceptedMinecraftVersions = "[1.12,1.12.2]"
 )
 public final class Gravisuite {
-  @Instance
-  public static Gravisuite Instance;
-
-  public Logger log;
-  public Config config;
-  public GraviKeys keys;
+  public static Logger Log;
 
   @EventHandler
   public void load(FMLPreInitializationEvent event) {
-    log = event.getModLog();
+    Log = event.getModLog();
 
-    config = new Config(event.getSuggestedConfigurationFile(), event.getSide().isClient());
-    keys = new GraviKeys();
-
-    config.loadConfig();
-    keys.addKeys();
+    GraviConfig.loadConfig(event.getSuggestedConfigurationFile(), event.getSide().isClient());
+    GraviKeys.init();
     GraviItem.buildItems(event.getSide());
 
     registerJetpackBlacklist();
@@ -67,7 +60,7 @@ public final class Gravisuite {
 
   @EventHandler
   public void postInit(FMLPostInitializationEvent event) {
-    if (config.replaceQuantumArmorCraft) {
+    if (GraviConfig.ReplaceQuantumArmorCraft) {
       GraviRecipes.changeQuantumRecipe();
     }
 
@@ -94,7 +87,7 @@ public final class Gravisuite {
     resultMessage.setStyle(new Style().setColor(color));
 
     if (player.world.isRemote) {
-      PrettyUtil.mc.ingameGUI.getChatGUI().printChatMessage(resultMessage);
+      Minecraft.getMinecraft().ingameGUI.getChatGUI().printChatMessage(resultMessage);
     } else if (player instanceof EntityPlayerMP) {
       player.sendMessage(resultMessage);
     }

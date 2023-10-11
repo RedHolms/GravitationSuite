@@ -50,13 +50,15 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 @SideOnly(Side.CLIENT)
 public final class PrettyUtil implements IResourceManagerReloadListener {
-  public static final TextureAtlasSprite[] DESTROY_BLOCK_ICONS = new TextureAtlasSprite[10];
-  public static final Minecraft mc = Minecraft.getMinecraft();
-  private static final Field CUR_BLOCK_DAMAGE_MP = getCBDMP();
+  public static final TextureAtlasSprite[] BLOCK_DESTROY_STAGES_SPRITES = new TextureAtlasSprite[10];
 
-  private static Field getCBDMP() {
+  private static final Field CURRENT_BLOCK_DAMAGE_MP_FIELD = getMinecraftCurrentBlockDamageMPField();
+
+  private static Field getMinecraftCurrentBlockDamageMPField() {
     Field field = ReflectionUtil.getField(PlayerControllerMP.class, "e", "field_78770_f", "curBlockDamageMP");
     if (field == null) {
       throw new RuntimeException("Cannot find curBlockDamageMP!");
@@ -67,21 +69,25 @@ public final class PrettyUtil implements IResourceManagerReloadListener {
 
   public PrettyUtil() {
     MinecraftForge.EVENT_BUS.register(this);
-    IResourceManager resourceManager = mc.getResourceManager();
+
+    IResourceManager resourceManager = Minecraft.getMinecraft().getResourceManager();
     if (resourceManager instanceof IReloadableResourceManager) {
-      ((IReloadableResourceManager)resourceManager).registerReloadListener(this);
+      IReloadableResourceManager reloadableResourceManager
+        = (IReloadableResourceManager)resourceManager;
+
+      reloadableResourceManager.registerReloadListener(this);
     } else {
       throw new IllegalStateException("ResourceManager is not reloadable?!");
     }
   }
 
+  @ParametersAreNonnullByDefault
   public void onResourceManagerReload(IResourceManager resourceManager) {
-    TextureMap texturemap = mc.getTextureMapBlocks();
+    TextureMap texturemap = Minecraft.getMinecraft().getTextureMapBlocks();
 
-    for(byte icon = 0; icon < DESTROY_BLOCK_ICONS.length; ++icon) {
-      DESTROY_BLOCK_ICONS[icon] = texturemap.getAtlasSprite("minecraft:blocks/destroy_stage_" + icon);
+    for (byte icon = 0; icon < BLOCK_DESTROY_STAGES_SPRITES.length; ++icon) {
+      BLOCK_DESTROY_STAGES_SPRITES[icon] = texturemap.getAtlasSprite("minecraft:blocks/destroy_stage_" + icon);
     }
-
   }
 
   @SubscribeEvent
@@ -89,36 +95,38 @@ public final class PrettyUtil implements IResourceManagerReloadListener {
     if (event.getSubID() == 0 && event.getTarget().typeOfHit == Type.BLOCK) {
       EntityPlayer player = event.getPlayer();
       ItemStack stack = player.getHeldItem(EnumHand.MAIN_HAND);
-      if (stack != null && stack.getItem() == GraviItem.ADVANCED_DRILL.getInstance() && ItemAdvancedDrill.readDrillMode(stack) == DrillMode.BIG_HOLES) {
-        drawAdditionalBlockbreak(event.getContext(), player, event.getPartialTicks(), ItemAdvancedDrill.getBrokenBlocks(player, event.getTarget()));
+
+      if (stack.getItem() == GraviItem.ADVANCED_DRILL.getInstance() && ItemAdvancedDrill.readDrillMode(stack) == DrillMode.BIG_HOLES) {
+        drawAdditionalBlockBreak(
+          event.getContext(), player, event.getPartialTicks(),
+          ItemAdvancedDrill.getBrokenBlocks(player, event.getTarget())
+        );
       }
     }
-
   }
 
-  public static void drawAdditionalBlockbreak(RenderGlobal context, EntityPlayer player, float partialTicks, Collection<BlockPos> blocks) {
-
-    for (BlockPos pos : blocks) {
+  public static void drawAdditionalBlockBreak(RenderGlobal context, EntityPlayer player, float partialTicks, Collection<BlockPos> blocks) {
+    for (BlockPos blockPos : blocks) {
       context.drawSelectionBox(
         player,
-        new RayTraceResult(new Vec3d(0.0, 0.0, 0.0), null, pos),
+        new RayTraceResult(new Vec3d(0.0, 0.0, 0.0), null, blockPos),
         0, partialTicks
       );
     }
 
-    if (mc.playerController.getIsHittingBlock()) {
+    if (Minecraft.getMinecraft().playerController.getIsHittingBlock()) {
       drawBlockDamageTexture(player, blocks, partialTicks);
     }
 
   }
 
-  private static float get_curBlockDamageMP(PlayerControllerMP controller) {
+  private static float getCurrentBlockDamage(PlayerControllerMP controller) {
     try {
-      return CUR_BLOCK_DAMAGE_MP.getFloat(controller);
-    } catch (IllegalArgumentException var2) {
-      throw new RuntimeException("curBlockDamageMP is not a float?! Turns out it was a " + CUR_BLOCK_DAMAGE_MP.getType(), var2);
-    } catch (IllegalAccessException var3) {
-      throw new RuntimeException("One job...", var3);
+      return CURRENT_BLOCK_DAMAGE_MP_FIELD.getFloat(controller);
+    } catch (IllegalArgumentException exception) {
+      throw new RuntimeException("curBlockDamageMP is not a float?! Turns out it was a " + CURRENT_BLOCK_DAMAGE_MP_FIELD.getType(), exception);
+    } catch (IllegalAccessException exception) {
+      throw new RuntimeException("One job...", exception);
     }
   }
 
@@ -126,10 +134,13 @@ public final class PrettyUtil implements IResourceManagerReloadListener {
     double x = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * (double)partialTicks;
     double y = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * (double)partialTicks;
     double z = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * (double)partialTicks;
-    int progress = (int)(get_curBlockDamageMP(mc.playerController) * 10.0F) - 1;
+
+    int progress = (int)(getCurrentBlockDamage(Minecraft.getMinecraft().playerController) * 10.0F) - 1;
+
     if (progress >= 0) {
-      TextureAtlasSprite sprite = DESTROY_BLOCK_ICONS[progress];
-      mc.renderEngine.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+      TextureAtlasSprite sprite = BLOCK_DESTROY_STAGES_SPRITES[progress];
+
+      Minecraft.getMinecraft().renderEngine.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 
       GlStateManager.tryBlendFuncSeparate(774, 768, 1, 0);
       GlStateManager.enableBlend();
@@ -141,42 +152,46 @@ public final class PrettyUtil implements IResourceManagerReloadListener {
       GlStateManager.pushMatrix();
 
       BufferBuilder worldRenderer = Tessellator.getInstance().getBuffer();
+
       worldRenderer.begin(7, DefaultVertexFormats.BLOCK);
       worldRenderer.pos(-x, -y, -z);
+
       World world = entity.world;
-      Iterator it = blocks.iterator();
 
-      while(true) {
-        BlockPos pos;
-        IBlockState state;
-        do {
-          if (!it.hasNext()) {
-            Tessellator.getInstance().draw();
-            worldRenderer.pos(0.0, 0.0, 0.0);
-            GlStateManager.disableAlpha();
-            GlStateManager.doPolygonOffset(0.0F, 0.0F);
-            GlStateManager.disablePolygonOffset();
-            GlStateManager.enableAlpha();
-            GlStateManager.depthMask(true);
-            GlStateManager.popMatrix();
-            return;
-          }
+      for (BlockPos blockPos : blocks) {
+        IBlockState blockState = world.getBlockState(blockPos);
 
-          pos = (BlockPos)it.next();
-          state = world.getBlockState(pos);
-        } while(state.getMaterial() == Material.AIR);
+        if (blockState.getMaterial() == Material.AIR)
+          continue;
 
-        Block block = state.getBlock();
-        boolean hasBreak = block instanceof BlockChest || block instanceof BlockEnderChest || block instanceof BlockSign || block instanceof BlockSkull;
-        if (!hasBreak) {
-          TileEntity te = world.getTileEntity(pos);
-          hasBreak = te != null && te.canRenderBreaking();
+        Block block = blockState.getBlock();
+
+        boolean canRenderBreaking =
+          block instanceof BlockChest ||
+          block instanceof BlockEnderChest ||
+          block instanceof BlockSign ||
+          block instanceof BlockSkull;
+
+        if (!canRenderBreaking) {
+          TileEntity tileEntity = world.getTileEntity(blockPos);
+
+          if (tileEntity != null)
+            canRenderBreaking = tileEntity.canRenderBreaking();
         }
 
-        if (!hasBreak) {
-          mc.getBlockRendererDispatcher().renderBlockDamage(state, pos, sprite, world);
+        if (!canRenderBreaking) {
+          Minecraft.getMinecraft().getBlockRendererDispatcher().renderBlockDamage(blockState, blockPos, sprite, world);
         }
       }
+
+      Tessellator.getInstance().draw();
+      worldRenderer.setTranslation(0.0, 0.0, 0.0);
+      GlStateManager.disableAlpha();
+      GlStateManager.doPolygonOffset(0.0F, 0.0F);
+      GlStateManager.disablePolygonOffset();
+      GlStateManager.enableAlpha();
+      GlStateManager.depthMask(true);
+      GlStateManager.popMatrix();
     }
   }
 }

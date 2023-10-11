@@ -19,17 +19,22 @@ import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-public class ItemCraftingThings extends ItemMulti<ItemCraftingThings.CraftingTypes> {
-  protected static final String NAME = "crafting";
+public class ItemCraftingThings extends ItemMulti<ItemCraftingThings.CraftingThingType> {
+  public static final String ITEM_NAME = "crafting";
 
   public ItemCraftingThings() {
-    super(null, CraftingTypes.class);
-    BlocksItems.registerItem(this, new ResourceLocation("gravisuite", NAME)).setUnlocalizedName(NAME);
+    super(null, CraftingThingType.class);
+
+    BlocksItems.registerItem(this, new ResourceLocation("gravisuite", ITEM_NAME)).setUnlocalizedName(ITEM_NAME);
   }
 
   @SideOnly(Side.CLIENT)
+  @Override
   protected void registerModel(int meta, ItemName name, String extraName) {
-    ModelLoader.setCustomModelResourceLocation(this, meta, new ModelResourceLocation("gravisuite:crafting/" + ItemCraftingThings.CraftingTypes.getFromID(meta).getName(), null));
+    ModelLoader.setCustomModelResourceLocation(
+      this, meta,
+      new ModelResourceLocation("gravisuite:crafting/" + CraftingThingType.getFromID(meta).getName(), null)
+    );
   }
 
   @Override
@@ -37,34 +42,35 @@ public class ItemCraftingThings extends ItemMulti<ItemCraftingThings.CraftingTyp
     return "gravisuite." + super.getUnlocalizedName().substring(4);
   }
 
-  public enum CraftingTypes implements IIdProvider {
-    SUPERCONDUCTOR_COVER(0),
-    SUPERCONDUCTOR(1),
-    COOLING_CORE(2),
-    GRAVITATION_ENGINE(3),
-    MAGNETRON(4),
-    VAJRA_CORE(5),
-    ENGINE_BOOSTER(6);
+  public enum CraftingThingType implements IIdProvider {
+    SUPERCONDUCTOR_COVER,
+    SUPERCONDUCTOR,
+    COOLING_CORE,
+    GRAVITATION_ENGINE,
+    MAGNETRON,
+    VAJRA_CORE,
+    ENGINE_BOOSTER;
 
-    private final String name;
-    private final int ID;
-    private static final CraftingTypes[] VALUES = values();
+    private static final CraftingThingType[] VALUES = values();
 
-    CraftingTypes(int ID) {
-      this.name = this.name().toLowerCase(Locale.ENGLISH);
-      this.ID = ID;
+    private final String m_name;
+    private final int m_id;
+
+    CraftingThingType() {
+      m_name = name().toLowerCase(Locale.ENGLISH);
+      m_id = ordinal();
     }
 
     public String getName() {
-      return this.name;
+      return m_name;
     }
 
     public int getId() {
-      return this.ID;
+      return m_id;
     }
 
-    public static CraftingTypes getFromID(int ID) {
-      return VALUES[ID % VALUES.length];
+    public static CraftingThingType getFromID(int id) {
+      return VALUES[id % VALUES.length];
     }
   }
 }
