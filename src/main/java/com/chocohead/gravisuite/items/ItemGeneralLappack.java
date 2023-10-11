@@ -23,16 +23,24 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 public abstract class ItemGeneralLappack extends ItemArmorElectric {
   protected final String name;
+  protected final String modelName;
 
-  protected ItemGeneralLappack(String name, double maxCharge, double transferLimit, int tier) {
+  protected ItemGeneralLappack(String name, String modelName, double maxCharge, double transferLimit, int tier) {
     super(null, null, EntityEquipmentSlot.CHEST, maxCharge, transferLimit, tier);
-    BlocksItems.registerItem(this, new ResourceLocation("gravisuite", this.name = name)).setUnlocalizedName(name);
+
+    this.name = name;
+    this.modelName = modelName;
+
+    BlocksItems.registerItem(this, new ResourceLocation("gravisuite", name)).setUnlocalizedName(name);
   }
 
-  @SideOnly(Side.CLIENT)
   @Override
+  @SideOnly(Side.CLIENT)
   public void registerModels(ItemName name) {
-    ModelLoader.setCustomModelResourceLocation(this, 0, new ModelResourceLocation("gravisuite:" + CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, this.name), null));
+    ModelLoader.setCustomModelResourceLocation(
+      this, 0,
+      new ModelResourceLocation("gravisuite:" + this.modelName, null)
+    );
   }
 
   @Override

@@ -11,40 +11,54 @@ package com.chocohead.gravisuite.items;
 import ic2.api.item.ElectricItem;
 import ic2.api.item.IC2Items;
 import ic2.core.util.StackUtil;
-import java.util.Iterator;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
 public class ItemAdvancedNanoChestplate extends ItemAdvancedElectricJetpack {
+  protected byte ticker;
+
   protected static final ItemStack WATER_CELL = IC2Items.getItem("fluid_cell", "water");
   protected static final ItemStack EMPTY_CELL = IC2Items.getItem("fluid_cell");
   protected static final byte TICK_RATE = 20;
-  protected byte ticker;
 
   public ItemAdvancedNanoChestplate() {
-    super("advancedNanoChestplate");
+    super("advancedNanoChestplate", "advanced_nano_chestplate");
   }
 
   @Override
-  public void onArmorTick(World world, EntityPlayer player, ItemStack armour) {
-    super.onArmorTick(world, player, armour);
+  public void onArmorTick(World world, EntityPlayer player, ItemStack itemStack) {
+    super.onArmorTick(world, player, itemStack);
+
     byte prevTicker = this.ticker;
     this.ticker = (byte)(prevTicker + 1);
-    if (prevTicker % TICK_RATE == 0 && player.isBurning() && ElectricItem.manager.canUse(armour, 50000.0)) {
-      Iterator it = player.inventory.mainInventory.iterator();
 
-      while(it.hasNext()) {
-        ItemStack stack = (ItemStack)it.next();
-        if (!StackUtil.isEmpty(stack) && StackUtil.checkItemEquality(WATER_CELL, stack.copy()) && StackUtil.storeInventoryItem(EMPTY_CELL, player, false)) {
-          stack.shrink(1);
-          ElectricItem.manager.discharge(stack, 50000.0, Integer.MAX_VALUE, true, false, false);
-          player.extinguish();
-          break;
-        }
-      }
+    if (prevTicker % TICK_RATE != 0)
+      return;
+
+    if (!player.isBurning())
+      return;
+
+    if (!ElectricItem.manager.canUse(itemStack, 50000.0))
+      return;
+
+    for (ItemStack fluidCell : player.inventory.mainInventory) {
+      if (StackUtil.isEmpty(fluidCell))
+        continue;
+
+      if (!StackUtil.checkItemEquality(WATER_CELL, fluidCell.copy()))
+        continue;
+
+      if (!StackUtil.storeInventoryItem(EMPTY_CELL, player, false))
+        continue;
+
+      fluidCell.shrink(1);
+      player.extinguish();
+
+      ElectricItem.manager.discharge(fluidCell, 50000.0, Integer.MAX_VALUE, true, false, false);
+
+      break;
     }
-
   }
 
   @Override

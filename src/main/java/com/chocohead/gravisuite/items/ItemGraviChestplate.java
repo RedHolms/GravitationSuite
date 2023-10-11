@@ -19,81 +19,97 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 
+import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 public class ItemGraviChestplate extends ItemAdvancedElectricJetpack {
   protected static final int DEFAULT_COLOUR = -1;
 
   public ItemGraviChestplate() {
-    super("graviChestplate", 6.0E7, 100000.0, 4);
+    super("graviChestplate", "gravi_chestplate", 6.0E7, 100000.0, 4);
   }
 
   @Override
   public String getArmorTexture(ItemStack stack, Entity entity, EntityEquipmentSlot slot, String type) {
-    return "gravisuite:textures/armour/" + this.name + (type != null ? "Overlay" : "") + ".png";
+    return "gravisuite:textures/armour/" + this.name + "Overlay" + ".png";
   }
 
   @Override
+  @ParametersAreNonnullByDefault
   public void setColor(ItemStack stack, int colour) {
     this.getDisplayNbt(stack, true).setInteger("colour", colour);
   }
 
   @Override
+  @ParametersAreNonnullByDefault
   public boolean hasColor(ItemStack stack) {
     return this.getColor(stack) != -1;
   }
 
   @Override
+  @ParametersAreNonnullByDefault
   public int getColor(ItemStack stack) {
     NBTTagCompound nbt = this.getDisplayNbt(stack, false);
-    return nbt != null && nbt.hasKey("colour", Constants.NBT.TAG_INT) ? nbt.getInteger("colour") : DEFAULT_COLOUR;
+
+    if (nbt == null)
+      return DEFAULT_COLOUR;
+
+    if (nbt.hasKey("colour", Constants.NBT.TAG_INT))
+      return nbt.getInteger("colour");
+
+    return DEFAULT_COLOUR;
   }
 
   @Override
+  @ParametersAreNonnullByDefault
   public void removeColor(ItemStack stack) {
     NBTTagCompound nbt = this.getDisplayNbt(stack, false);
-    if (nbt != null && nbt.hasKey("colour", Constants.NBT.TAG_INT)) {
-      nbt.removeTag("colour");
-      if (nbt.hasNoTags()) {
-        stack.getTagCompound().removeTag("display");
-      }
 
-    }
+    if (nbt == null)
+      return;
+
+    if (!nbt.hasKey("colour", Constants.NBT.TAG_INT))
+      return;
+
+    nbt.removeTag("colour");
+
+    if (nbt.hasNoTags())
+      stack.getTagCompound().removeTag("display");
   }
 
   protected NBTTagCompound getDisplayNbt(ItemStack stack, boolean create) {
     NBTTagCompound nbt = stack.getTagCompound();
+
     if (nbt == null) {
-      if (!create) {
+      if (!create)
         return null;
-      }
 
       nbt = new NBTTagCompound();
       stack.setTagCompound(nbt);
     }
 
-    NBTTagCompound out;
-    if (!nbt.hasKey("display", Constants.NBT.TAG_COMPOUND)) {
-      if (!create) {
-        return null;
-      }
+    if (nbt.hasKey("display", Constants.NBT.TAG_COMPOUND))
+      return nbt.getCompoundTag("display");
 
-      out = new NBTTagCompound();
-      nbt.setTag("display", out);
-    } else {
-      out = nbt.getCompoundTag("display");
-    }
+    if (!create)
+      return null;
 
-    return out;
+    NBTTagCompound displayNbt = new NBTTagCompound();
+    nbt.setTag("display", displayNbt);
+
+    return displayNbt;
   }
 
   @Override
-  public EnumRarity getRarity(ItemStack stack) {
+  @ParametersAreNonnullByDefault
+  public @Nonnull EnumRarity getForgeRarity(ItemStack stack) {
     return EnumRarity.EPIC;
   }
 
   @Override
-  public void onArmorTick(World world, EntityPlayer player, ItemStack stack) {
-    super.onArmorTick(world, player, stack);
+  public void onArmorTick(World world, EntityPlayer player, ItemStack itemStack) {
+    super.onArmorTick(world, player, itemStack);
+
     player.extinguish();
   }
 
@@ -163,10 +179,5 @@ public class ItemGraviChestplate extends ItemAdvancedElectricJetpack {
   @Override
   public double getDamageAbsorptionRatio() {
     return 1.1;
-  }
-
-  @Override
-  public boolean canProvideEnergy(ItemStack stack) {
-    return true;
   }
 }

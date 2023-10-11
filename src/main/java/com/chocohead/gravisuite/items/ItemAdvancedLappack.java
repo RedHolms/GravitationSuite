@@ -11,13 +11,17 @@ package com.chocohead.gravisuite.items;
 import net.minecraft.item.EnumRarity;
 import net.minecraft.item.ItemStack;
 
+import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
+
 public class ItemAdvancedLappack extends ItemGeneralLappack {
   public ItemAdvancedLappack() {
-    super("advancedLappack", 3000000.0, 30000.0, 3);
+    super("advancedLappack", "advanced_lappack", 3000000.0, 30000.0, 3);
   }
 
   @Override
-  public EnumRarity getRarity(ItemStack stack) {
+  @ParametersAreNonnullByDefault
+  public @Nonnull EnumRarity getForgeRarity(ItemStack stack) {
     return EnumRarity.UNCOMMON;
   }
 }

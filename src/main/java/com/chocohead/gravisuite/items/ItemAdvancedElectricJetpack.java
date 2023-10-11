@@ -10,7 +10,6 @@ package com.chocohead.gravisuite.items;
 
 import com.chocohead.gravisuite.GraviKeys;
 import com.chocohead.gravisuite.Gravisuite;
-import com.google.common.base.CaseFormat;
 import ic2.api.item.ElectricItem;
 import ic2.core.IC2;
 import ic2.core.init.BlocksItems;
@@ -33,29 +32,42 @@ import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.ParametersAreNullableByDefault;
+
 public class ItemAdvancedElectricJetpack extends ItemArmorElectric implements IBoostingJetpack {
   protected final String name;
+  protected final String modelName;
 
   public ItemAdvancedElectricJetpack() {
-    this("advancedJetpack");
+    this("advancedJetpack", "advanced_jetpack");
   }
 
-  protected ItemAdvancedElectricJetpack(String name) {
-    this(name, 3000000.0, 30000.0, 3);
+  protected ItemAdvancedElectricJetpack(String name, String modelName) {
+    this(name, modelName, 3000000.0, 30000.0, 3);
   }
 
-  protected ItemAdvancedElectricJetpack(String name, double maxCharge, double transferLimit, int tier) {
+  protected ItemAdvancedElectricJetpack(String name, String modelName, double maxCharge, double transferLimit, int tier) {
     super(null, null, EntityEquipmentSlot.CHEST, maxCharge, transferLimit, tier);
-    this.name = name;
+
     BlocksItems.registerItem(this, new ResourceLocation("gravisuite", name)).setUnlocalizedName(name);
+
+    this.name = name;
+    this.modelName = modelName;
+
     this.setMaxDamage(27);
     this.setMaxStackSize(1);
     this.setNoRepair();
   }
 
+  @Override
   @SideOnly(Side.CLIENT)
   public void registerModels(ItemName name) {
-    ModelLoader.setCustomModelResourceLocation(this, 0, new ModelResourceLocation("gravisuite:" + CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, this.name), null));
+    ModelLoader.setCustomModelResourceLocation(
+      this, 0,
+      new ModelResourceLocation("gravisuite:" + this.modelName, null)
+    );
   }
 
   @Override
@@ -69,7 +81,8 @@ public class ItemAdvancedElectricJetpack extends ItemArmorElectric implements IB
   }
 
   @Override
-  public EnumRarity getRarity(ItemStack stack) {
+  @ParametersAreNonnullByDefault
+  public @Nonnull EnumRarity getForgeRarity(ItemStack stack) {
     return EnumRarity.UNCOMMON;
   }
 
@@ -83,34 +96,42 @@ public class ItemAdvancedElectricJetpack extends ItemArmorElectric implements IB
 
   public static boolean switchJetpack(ItemStack stack) {
     NBTTagCompound nbt = StackUtil.getOrCreateNbtData(stack);
-    boolean newMode;
-    nbt.setBoolean("isFlyActive", newMode = !nbt.getBoolean("isFlyActive"));
+
+    boolean newMode = !nbt.getBoolean("isFlyActive");
+    nbt.setBoolean("isFlyActive", newMode);
+
     return newMode;
   }
 
-  public void onArmorTick(World world, EntityPlayer player, ItemStack stack) {
-    NBTTagCompound nbt = StackUtil.getOrCreateNbtData(stack);
+  @Override
+  @ParametersAreNullableByDefault
+  public void onArmorTick(World world, EntityPlayer player, ItemStack itemStack) {
+    assert world != null;
+    assert itemStack != null;
+
+    NBTTagCompound nbt = StackUtil.getOrCreateNbtData(itemStack);
+
     byte toggleTimer = nbt.getByte("toggleTimer");
-    if (Gravisuite.Instance.keys.isFlyKeyDown(player) && toggleTimer == 0) {
-      toggleTimer = 10;
+
+    if (GraviKeys.isFlyKeyDown(player) && toggleTimer == 0) {
       nbt.setByte("toggleTimer", (byte)10);
+      toggleTimer = 10;
+
       if (!world.isRemote) {
-        String mode;
-        if (switchJetpack(stack)) {
-          mode = TextFormatting.DARK_GREEN + Localization.translate("gravisuite.message.on");
+        String state;
+        if (switchJetpack(itemStack)) {
+          state = TextFormatting.DARK_GREEN + Localization.translate("gravisuite.message.on");
         } else {
-          mode = TextFormatting.DARK_RED + Localization.translate("gravisuite.message.off");
+          state = TextFormatting.DARK_RED + Localization.translate("gravisuite.message.off");
         }
 
-        Gravisuite.messagePlayer(player, "gravisuite.message.jetpackSwitch", TextFormatting.YELLOW, mode);
+        Gravisuite.messagePlayer(player, "gravisuite.message.jetpackSwitch", TextFormatting.YELLOW, state);
       }
     }
 
-    if (toggleTimer > 0 && !isJetpackOn(stack)) {
-      --toggleTimer;
-      nbt.setByte("toggleTimer", toggleTimer);
+    if (toggleTimer > 0 && !isJetpackOn(itemStack)) {
+      nbt.setByte("toggleTimer", --toggleTimer);
     }
-
   }
 
   @Override
@@ -160,15 +181,13 @@ public class ItemAdvancedElectricJetpack extends ItemArmorElectric implements IB
 
   @Override
   public float getHoverBoost(EntityPlayer player, ItemStack stack, boolean up) {
-    if (IC2.keyboard.isBoostKeyDown(player) && ElectricItem.manager.getCharge(stack) >= 60.0) {
-      if (!player.onGround) {
-        ElectricItem.manager.discharge(stack, 60.0, Integer.MAX_VALUE, true, false, false);
-      }
-
-      return 2.0F;
-    } else {
+    if (!IC2.keyboard.isBoostKeyDown(player) || !(ElectricItem.manager.getCharge(stack) >= 60.0))
       return 1.0F;
-    }
+
+    if (!player.onGround)
+      ElectricItem.manager.discharge(stack, 60.0, Integer.MAX_VALUE, true, false, false);
+
+    return 2.0F;
   }
 
   @Override
